@@ -15,13 +15,25 @@
     if (next !== colsNow()) setCols(next);
   }
   function te(e) { if (e.touches.length < 2) startDist = 0; }
+  // Trackpad (pinça = ctrl + roda): mesma mudança de colunas.
+  let acc = 0;
+  function wheel(e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    acc += e.deltaY;
+    if (Math.abs(acc) < 40) return;
+    setCols(Math.max(2, Math.min(14, colsNow() + (acc > 0 ? 1 : -1))));
+    acc = 0;
+  }
   let el;
   $effect(() => {
     // touchmove não pode ser passivo para conseguir bloquear o zoom da página.
     el.addEventListener('touchstart', ts, { passive: true });
     el.addEventListener('touchmove', tm, { passive: false });
     el.addEventListener('touchend', te);
+    el.addEventListener('wheel', wheel, { passive: false });
     return () => {
+      el.removeEventListener('wheel', wheel);
       el.removeEventListener('touchstart', ts);
       el.removeEventListener('touchmove', tm);
       el.removeEventListener('touchend', te);

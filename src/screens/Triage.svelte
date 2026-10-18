@@ -5,6 +5,8 @@
   import { iosEase } from '../lib/ease.js';
   import { t } from '../lib/i18n.svelte.js';
   import { haptic } from '../lib/haptic.js';
+  import { bufferAppend, slotForHotkey, isGroupBucket } from '../lib/rules.js';
+  import { mod, isTyping, modLabel } from '../lib/keys.js';
 
   const project = $derived(current());
   const map = $derived(mapById(project.mapId));
@@ -76,9 +78,19 @@
   }
 
   let sx = null, sy = 0;
-  function pd(e) { if (cropping) return; sx = e.clientX; sy = e.clientY; anim = false; }
-  function pm(e) { if (sx == null) return; dx = e.clientX - sx; }
+  let pan = null;
+  function pd(e) {
+    if (cropping) return;
+    if (zoom > 1) { pan = { x: e.clientX, y: e.clientY, px, py }; return; }
+    sx = e.clientX; sy = e.clientY; anim = false;
+  }
+  function pm(e) {
+    if (pan) { px = pan.px + (e.clientX - pan.x) / zoom; py = pan.py + (e.clientY - pan.y) / zoom; return; }
+    if (sx == null) return;
+    dx = e.clientX - sx;
+  }
   function pu(e) {
+    pan = null;
     if (sx == null) return;
     const moved = dx;
     sx = null;
@@ -96,6 +108,61 @@
 
   function close() { app.triage = null; }
 
+  // ---------- Teclado (igual ao FastReport do Mac) ----------
+  let buffer = $state('');
+  let zoom = $state(1), px = $state(0), py = $state(0);
+  const keyTarget = $derived(buffer ? slotForHotkey(map, buffer, group) : null);
+  const bucket = $derived(group ? map.slots.find((s) => isGroupBucket(map, s) && s.folder === group) : null);
+  const preview = $derived(keyTarget ? (keyTarget.group ? `${keyTarget.group} / ${keyTarget.folder}` : slotLabel(keyTarget, true)) : buffer ? buffer.toUpperCase() : '');
+  $effect(() => { photo?.id; buffer = ''; zoom = 1; px = 0; py = 0; });
+
+  function commit() {
+    if (keyTarget) { classify(keyTarget); buffer = ''; return; }
+    if (!buffer && bucket && photo) { classify(bucket); return; }
+    if (buffer) toast(t('triage.badKey', { k: buffer.toUpperCase() }));
+    buffer = '';
+  }
+  function setZoom(z) { zoom = Math.max(1, Math.min(6, z)); if (zoom === 1) { px = 0; py = 0; } }
+
+  function onKey(e) {
+    if (isTyping(e) || app.alert || app.shortcuts) return;
+    const k = e.key;
+    if (cropping) {
+      if (k === 'Escape') { e.preventDefault(); cropping = false; }
+      return; // Enter é tratado pelo próprio recorte
+    }
+    if (k === 'Escape') { e.preventDefault(); if (buffer) buffer = ''; else close(); return; }
+    if (k === 'Tab' && groups.length > 1) {
+      e.preventDefault();
+      const i = groups.indexOf(group);
+      group = groups[(i + (e.shiftKey ? groups.length - 1 : 1)) % groups.length];
+      return;
+    }
+    if (k === 'Enter') { e.preventDefault(); commit(); return; }
+    if (k === 'ArrowLeft') { e.preventDefault(); go(-1); return; }
+    if (k === 'ArrowRight') { e.preventDefault(); go(1); return; }
+    if ((mod(e) && k === 'Backspace') || k === 'Delete') { e.preventDefault(); if (photo) classify(trash); return; }
+    if (k === 'Backspace') { e.preventDefault(); buffer = buffer.slice(0, -1); return; }
+    if (mod(e) && k.toLowerCase() === 'z') { e.preventDefault(); doUndo(); return; }
+    if (mod(e) && k === '0') { e.preventDefault(); setZoom(1); return; }
+    if (k === '+' || k === '=') { e.preventDefault(); setZoom(zoom * 1.5); return; }
+    if (k === '-') { e.preventDefault(); setZoom(zoom / 1.5); return; }
+    if (mod(e) || e.altKey) return;
+    const low = k.toLowerCase();
+    if (low === 'r') { e.preventDefault(); edit('rotate'); return; }
+    if (low === 'f') { e.preventDefault(); edit('flip'); return; }
+    if (low === 'c') { e.preventDefault(); if (photo) cropping = true; return; }
+    if (low === 's') { e.preventDefault(); go(1); return; }
+    if (k.length === 1 && (/\d/.test(k) || low === 'g')) { e.preventDefault(); buffer = bufferAppend(buffer, k); }
+  }
+
+  // Trackpad: pinça (ctrl+roda) faz zoom; com zoom, deslizar move a foto.
+  function onWheel(e) {
+    if (cropping) return;
+    if (e.ctrlKey) { e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY / 120)); return; }
+    if (zoom > 1) { e.preventDefault(); px -= e.deltaX / zoom; py -= e.deltaY / zoom; }
+  }
+
   // Mantém o ecrã ligado durante a triagem (quando o iOS o permite).
   $effect(() => {
     let lock = null, alive = true;
@@ -110,22 +177,24 @@
   const total = $derived(project.photos.length);
 </script>
 
-<div class="triage" transition:slide>
+<svelte:window onkeydown={onKey} />
+
+<div class="triage" class:desk={app.wide} transition:slide>
   <header>
     <button class="ib" onclick={close} aria-label={t('triage.close')}><Icon name="close" size={22} stroke={2.4} /></button>
     <div class="mid">
       <div class="pos">{list.length ? `${index + 1} / ${list.length}` : '0'}</div>
-      <div class="sub">{t('slot.inbox')}</div>
+      <div class="sub">{#if preview}<span class="buf" class:bad={!keyTarget}>→ {preview}</span>{:else}{t('slot.inbox')}{/if}</div>
     </div>
     <button class="ib" onclick={doUndo} disabled={!project.undo.length} aria-label="undo"><Icon name="undo" size={22} /></button>
   </header>
 
   <div class="progress"><span style:width="{total ? ((total - list.length) / total) * 100 : 0}%"></span></div>
 
-  <div class="stage" onpointerdown={pd} onpointermove={pm} onpointerup={pu} onpointercancel={pu} role="presentation">
+  <div class="stage" onwheel={onWheel} ondblclick={() => setZoom(zoom > 1 ? 1 : 2.5)} onpointerdown={pd} onpointermove={pm} onpointerup={pu} onpointercancel={pu} role="presentation">
     {#if photo}
       {#key photo.id + photo.full}
-        <img class="main enter-{enter}" class:anim src={photo.full} alt="" style:transform="translateX({dx}px)" draggable="false" />
+        <img class="main enter-{enter}" class:anim class:zoomed={zoom > 1} src={photo.full} alt="" style:transform="translateX({dx}px) scale({zoom}) translate({px}px, {py}px)" draggable="false" />
       {/key}
       {#if cropping}
         <CropOverlay src={photo.full} w={photo.w} h={photo.h} oncancel={() => (cropping = false)} onapply={applyCrop} />
@@ -145,15 +214,16 @@
       {#key flash.key}<div class="flash" class:trash={flash.trash}>{flash.text}</div>{/key}
     {/if}
     {#if busy}<div class="busy"><span></span></div>{/if}
+    {#if zoom > 1}<button class="zoomtag" onclick={() => setZoom(1)}>{Math.round(zoom * 100)}%</button>{/if}
   </div>
 
   {#if !cropping}
     <div class="tools">
-      <button onclick={() => edit('rotate')} disabled={!photo}><Icon name="rotate" size={22} /><span>{t('triage.rotate')}</span></button>
-      <button onclick={() => edit('flip')} disabled={!photo}><Icon name="flip" size={22} /><span>{t('triage.flip')}</span></button>
-      <button onclick={() => (cropping = true)} disabled={!photo}><Icon name="crop" size={22} /><span>{t('triage.crop')}</span></button>
-      <button onclick={() => go(-1)} disabled={index === 0}><Icon name="prev" size={22} /><span>{t('triage.prev')}</span></button>
-      <button onclick={() => go(1)} disabled={index >= list.length - 1}><Icon name="chevron" size={22} /><span>{t('triage.skip')}</span></button>
+      <button onclick={() => edit('rotate')} disabled={!photo} title="R"><Icon name="rotate" size={22} /><span>{t('triage.rotate')}<kbd>R</kbd></span></button>
+      <button onclick={() => edit('flip')} disabled={!photo} title="F"><Icon name="flip" size={22} /><span>{t('triage.flip')}<kbd>F</kbd></span></button>
+      <button onclick={() => (cropping = true)} disabled={!photo} title="C"><Icon name="crop" size={22} /><span>{t('triage.crop')}<kbd>C</kbd></span></button>
+      <button onclick={() => go(-1)} disabled={index === 0} title="←"><Icon name="prev" size={22} /><span>{t('triage.prev')}<kbd>←</kbd></span></button>
+      <button onclick={() => go(1)} disabled={index >= list.length - 1} title="S / →"><Icon name="chevron" size={22} /><span>{t('triage.skip')}<kbd>S</kbd></span></button>
     </div>
 
     <div class="pad">
@@ -161,6 +231,9 @@
         <div class="seg">
           {#each groups as g}<button class:on={group === g} onclick={() => (group = g)}>{g}</button>{/each}
         </div>
+      {/if}
+      {#if app.wide}
+        <div class="hint">{t('triage.keysHint')} <button class="tap" onclick={() => (app.shortcuts = true)}>{t('shortcuts.open')}</button></div>
       {/if}
       <div class="keys">
         {#each numbered as s (s.id)}
@@ -175,7 +248,7 @@
         {#each extras as s (s.id)}
           <button class="key wide" onclick={() => classify(s)} disabled={!photo}><span class="kl">{s.folder}</span><span class="kc">{count(s)}</span></button>
         {/each}
-        <button class="key wide danger" onclick={() => classify(trash)} disabled={!photo}><Icon name="trash" size={18} /><span class="kl">{t('slot.trash')}</span></button>
+        <button class="key wide danger" onclick={() => classify(trash)} disabled={!photo} title="{modLabel} ⌫"><Icon name="trash" size={18} /><span class="kl">{t('slot.trash')}</span></button>
       </div>
     </div>
   {/if}
@@ -202,6 +275,13 @@
   .stage { flex: 1; min-height: 0; position: relative; overflow: hidden; touch-action: none; }
   .main { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
   .main.anim { transition: transform 0.24s var(--ease); }
+  .main.zoomed { transition: transform 0.12s ease-out; cursor: grab; }
+  .buf { color: var(--yellow); font-weight: 700; font-size: 13px; }
+  .buf.bad { color: rgba(255,255,255,0.75); }
+  .zoomtag { position: absolute; right: 12px; top: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; font-weight: 600; }
+  .tools kbd { display: none; }
+  .hint { font-size: 12px; color: rgba(255,255,255,0.55); padding: 2px 4px 8px; }
+  .hint button { color: var(--yellow); font-size: 12px; }
   .enter-pop { animation: enterPop 0.34s var(--ease) both; }
   .enter-back { animation: enterBack 0.34s var(--ease) both; }
   .enter-fade { animation: enterFade 0.25s ease-out both; }
@@ -280,4 +360,21 @@
     .key { height: 38px; }
     .seg button { height: 28px; }
   }
+
+  /* Ecrã largo (computador): foto grande à esquerda, ferramentas e teclas à direita, com atalhos à vista. */
+  .triage.desk {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 30%);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+  .desk header { grid-column: 1 / -1; }
+  .desk .progress { grid-column: 1 / -1; }
+  .desk .stage { grid-column: 1; grid-row: 3 / 5; }
+  .desk .stage:last-child { grid-column: 1 / -1; }
+  .desk .tools { grid-column: 2; grid-row: 3; background: #111; border-left: 0.5px solid #2a2a2a; padding: 10px 6px 6px; }
+  .desk .tools span { font-size: 11px; display: grid; justify-items: center; gap: 3px; }
+  .desk .tools kbd { display: inline-block; font: 600 10px/1 system-ui; padding: 3px 5px; border-radius: 4px; background: #2c2c2e; color: rgba(255,255,255,0.7); }
+  .desk .pad { grid-column: 2; grid-row: 4; overflow-y: auto; border-top: 0; border-left: 0.5px solid #2a2a2a; padding: 10px; }
+  .desk .keys { grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .desk .key { height: 52px; }
 </style>

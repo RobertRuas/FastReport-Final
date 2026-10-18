@@ -105,10 +105,28 @@ body { position: fixed; inset: 0; overflow: hidden; }
 /* Ecrãs pretos (triagem, visualizador): as faixas ao lado do entalhe também ficam pretas. */
 body:has(.triage, .viewer) { background: #000; }
 
-/* Só no computador (rato) se mostra a app em coluna, com o tamanho de um telemóvel. */
-@media (min-width: 600px) and (hover: hover) and (pointer: fine) {
+/* Janela estreita no computador (entre telemóvel e ecrã largo): coluna centrada, como um telemóvel. */
+@media (min-width: 600px) and (max-width: 899px) and (hover: hover) and (pointer: fine) {
   body { background: #111; }
   #app { max-width: 430px; box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 20px 80px rgba(0,0,0,0.5); }
+}
+
+/* Rato: cursores e foco visível para o teclado. */
+@media (hover: hover) and (pointer: fine) {
+  .thumb { cursor: pointer; }
+  .card:hover, .row:is(button):hover { background: var(--fill); }
+  .btn:hover { filter: brightness(1.06); }
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus:not(:focus-visible) { outline: none; }
+
+.kbd {
+  display: inline-grid; place-items: center;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  border-radius: 6px; border: 0.5px solid var(--sep);
+  background: var(--bg2); box-shadow: 0 1px 0 var(--sep);
+  font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+  color: var(--label);
 }
 
 button {

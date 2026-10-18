@@ -4,6 +4,7 @@
   import { fade, scale as zoom } from 'svelte/transition';
   import { iosEase } from '../lib/ease.js';
   import { t } from '../lib/i18n.svelte.js';
+  import { mod, isTyping } from '../lib/keys.js';
 
   const project = $derived(current());
   const map = $derived(mapById(project.mapId));
@@ -115,10 +116,35 @@
     try { await editPhoto(project, photo, kind); } finally { editing = false; }
   }
   const targets = $derived(orderedSlots(map).filter((s) => !s.isInbox));
+
+  // Teclado e rato (computador).
+  function step(dir) { if (!sliding && list[index + dir]) slide(dir); }
+  function onKey(e) {
+    if (isTyping(e) || app.alert || app.shortcuts) return;
+    const k = e.key, low = k.toLowerCase();
+    if (k === 'Escape') { e.preventDefault(); if (moving) moving = false; else close(); return; }
+    if (moving) return;
+    if (k === 'ArrowLeft') { e.preventDefault(); step(-1); return; }
+    if (k === 'ArrowRight') { e.preventDefault(); step(1); return; }
+    if ((mod(e) && k === 'Backspace') || k === 'Delete') { e.preventDefault(); if (!slot.isTrash) moveTo(map.slots.find((s) => s.isTrash)); return; }
+    if (mod(e) && k === '0') { e.preventDefault(); reset(); return; }
+    if (k === '+' || k === '=') { e.preventDefault(); smooth = true; scale = Math.min(5, scale * 1.5); setTimeout(() => (smooth = false), 250); return; }
+    if (k === '-') { e.preventDefault(); if (scale / 1.5 <= 1.05) reset(); else { smooth = true; scale /= 1.5; setTimeout(() => (smooth = false), 250); } return; }
+    if (mod(e) || e.altKey) return;
+    if (low === 'r') { e.preventDefault(); edit('rotate'); }
+    else if (low === 'f') { e.preventDefault(); edit('flip'); }
+    else if (low === 'm') { e.preventDefault(); moving = true; }
+  }
+  function onWheel(e) {
+    if (e.ctrlKey) { e.preventDefault(); scale = Math.max(1, Math.min(5, scale * Math.exp(-e.deltaY / 120))); if (scale <= 1.02) { tx = 0; ty = 0; } return; }
+    if (scale > 1) { e.preventDefault(); tx -= e.deltaX / scale; ty -= e.deltaY / scale; }
+  }
 </script>
 
+<svelte:window onkeydown={onKey} />
+
 <div class="viewer" style:background="rgba(0,0,0,{1 - Math.min(sy / 400, 0.6)})" in:zoom={{ start: 0.92, duration: 320, easing: iosEase }} out:fade={{ duration: 200 }}>
-  <div class="area" bind:this={el} bind:clientWidth={W}>
+  <div class="area" bind:this={el} bind:clientWidth={W} onwheel={onWheel} role="presentation">
     <div class="track" class:sliding class:smooth style:transform="translate3d({sw + shift}px, 0, 0)">
       {#each slides as { k, p } (p.id)}
         <div class="slide" style:transform="translate3d({k * (W + GAP)}px, 0, 0)">
@@ -134,6 +160,10 @@
     </div>
   </div>
 
+  {#if chrome && app.wide}
+    {#if index > 0}<button class="side l" onclick={() => step(-1)} aria-label={t('triage.prev')}><Icon name="prev" size={28} stroke={2.4} /></button>{/if}
+    {#if index < list.length - 1}<button class="side r" onclick={() => step(1)} aria-label={t('triage.skip')}><Icon name="chevron" size={28} stroke={2.4} /></button>{/if}
+  {/if}
   {#if chrome}
     <header transition:fade={{ duration: 150 }}>
       <button class="ib" onclick={close} aria-label="close"><Icon name="close" size={22} stroke={2.4} /></button>
@@ -196,6 +226,10 @@
   footer .red { color: #ff6961; }
   footer button:disabled { opacity: 0.4; }
   .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+  .side { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: rgba(40,40,42,0.7); color: #fff; z-index: 2; }
+  .side.l { left: 16px; } .side.r { right: 16px; }
+  .side:hover { background: rgba(70,70,74,0.85); }
+  .mv { max-width: 720px; margin: 0 auto; }
   .mv {
     position: absolute; left: 8px; right: 8px; bottom: calc(var(--sab) + 8px);
     background: #1c1c1e; border-radius: 16px; padding: 12px; max-height: 60%; overflow-y: auto;

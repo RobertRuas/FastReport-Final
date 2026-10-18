@@ -86,6 +86,12 @@
     <button class="row tap" onclick={demo}>
       <span class="grow link">{t('settings.demo')}</span><Icon name="photos" size={18} />
     </button>
+    <button class="row tap" onclick={() => (app.notes = true)}>
+      <span class="grow link">{t('notes.title')}</span><Icon name="sparkle" size={18} />
+    </button>
+    <button class="row tap" onclick={() => (app.shortcuts = true)}>
+      <span class="grow link">{t('shortcuts.open')}</span><Icon name="keyboard" size={18} />
+    </button>
     <div class="row"><span class="grow">{t('settings.version')}</span><span class="value">{APP_VERSION}</span></div>
   </div>
   <div style="height: calc(var(--sab) + 30px)"></div>

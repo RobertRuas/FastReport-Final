@@ -6,7 +6,7 @@
 
 {#if app.toast}
   {#key app.toast.key}
-    <div class="toast" class:accent={app.toast.tone === 'accent'} in:fly={{ y: -24, duration: 380, easing: backOut }} out:fly={{ y: -12, duration: 220 }}>{app.toast.text}</div>
+    <div class="toast" class:accent={app.toast.tone === 'accent'} class:danger={app.toast.tone === 'danger'} in:fly={{ y: -24, duration: 380, easing: backOut }} out:fly={{ y: -12, duration: 220 }}>{app.toast.text}</div>
   {/key}
 {/if}
 
@@ -30,4 +30,5 @@
     pointer-events: none;
   }
   .toast.accent { color: var(--yellow); }
+  .toast.danger { color: #ff6961; white-space: normal; text-align: center; max-width: min(90vw, 460px); border-radius: 18px; }
 </style>

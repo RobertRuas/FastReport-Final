@@ -13,6 +13,8 @@ export const IMAGE_SIZES = [1024, 1600, 2048];
 export const QUALITIES = [{ id: 'high', value: 0.85 }, { id: 'medium', value: 0.7 }];
 export const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
 export const UI_SIZES = [0.9, 1, 1.1, 1.2];
+export const WIDE_MIN = 900;
+export const SIDE_W = 340;
 /** Idioma do iPhone: a primeira língua preferida decide; só português fica em PT, o resto em inglês. */
 export const deviceLang = () => {
   const first = navigator.languages?.[0] || navigator.language || Intl.DateTimeFormat().resolvedOptions().locale || 'en';
@@ -36,6 +38,7 @@ export const app = $state({
   busy: null, // { text, done, total }
   cols: 'auto', // 'auto' ou número fixo
   width: typeof window !== 'undefined' ? window.innerWidth : 390,
+  wide: typeof window !== 'undefined' && window.innerWidth >= 900, // ecrã largo: barra lateral + projeto
   theme: 'auto', // 'auto' | 'light' | 'dark'
   langPref: 'auto', // 'auto' | 'pt' | 'en'
   ui: 1, // tamanho da interface (escala de elementos e letra)
@@ -155,7 +158,7 @@ export async function boot() {
   applyLang();
   applyTheme();
   applyUi();
-  addEventListener('resize', () => (app.width = innerWidth));
+  addEventListener('resize', () => { app.width = innerWidth; app.wide = innerWidth >= WIDE_MIN; });
   addEventListener('languagechange', applyLang);
   try {
     app.persisted = (await navigator.storage?.persisted?.()) ?? false;
@@ -179,6 +182,7 @@ export async function requestPersistence() {
 /** Colunas em uso: automático = pela largura do ecrã (5 num iPhone normal). */
 export function colsNow() {
   if (app.cols !== 'auto') return app.cols;
+  if (app.wide) return Math.max(4, Math.min(12, Math.round((app.width - SIDE_W * app.ui) / (130 * app.ui))));
   return Math.max(4, Math.min(7, Math.round(app.width / (80 * app.ui))));
 }
 
@@ -214,6 +218,7 @@ export function setTheme(theme) {
 
 function applyUi() {
   document.documentElement.style.fontSize = `${16 * app.ui}px`;
+  document.documentElement.style.setProperty('--side-w', `${SIDE_W / 16}rem`);
 }
 
 export function setUi(v) {

@@ -32,7 +32,11 @@
     r = { x, y, w: rw, h: rh };
   }
   function up() { mode = null; }
+  // Teclado (computador): Enter aplica, Esc cancela (tratado pela triagem).
+  function key(e) { if (e.key === 'Enter') { e.preventDefault(); onapply?.(r); } }
 </script>
+
+<svelte:window onkeydown={key} />
 
 <div class="ov" bind:clientWidth={cw} bind:clientHeight={ch} onpointermove={move} onpointerup={up} role="presentation">
   <div

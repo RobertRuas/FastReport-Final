@@ -21,6 +21,21 @@
     { id: 'review', label: 'project.review', icon: 'review' }
   ];
 
+  // Arrastar fotos do Finder (ou de outra app) para a janela importa-as para Sem categoria.
+  let dropping = $state(false);
+  let dragDepth = 0;
+  const hasFiles = (e) => [...(e.dataTransfer?.types ?? [])].includes('Files');
+  function dragenter(e) { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; dropping = true; }
+  function dragover(e) { if (hasFiles(e)) e.preventDefault(); }
+  function dragleave() { if (--dragDepth <= 0) { dragDepth = 0; dropping = false; } }
+  async function drop(e) {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0; dropping = false;
+    const files = [...(e.dataTransfer.files ?? [])];
+    if (files.length) await importFiles(p, files);
+  }
+
   function startTriage(i = 0) {
     if (!inbox.length) return;
     app.triage = { index: i };
@@ -47,13 +62,36 @@
 </script>
 
 {#if p}
-  <NavBar title={p.name} scrolled={scrolled || app.tab !== 'inbox'}>
-    {#snippet left()}<NavButton icon="back" label={t('app.projects')} onclick={closeProject} />{/snippet}
+  <div class="drop-zone" ondragenter={dragenter} ondragover={dragover} ondragleave={dragleave} ondrop={drop} role="presentation">
+  <NavBar title={p.name} scrolled={scrolled || app.tab !== 'inbox' || app.wide}>
+    {#snippet left()}
+      {#if app.wide}
+        {#if isFolder(p)}<span class="badge blue where"><Icon name="folder" size={12} stroke={2.4} /> {p.handle?.name ?? ''}</span>{/if}
+      {:else}
+        <NavButton icon="back" label={t('app.projects')} onclick={closeProject} />
+      {/if}
+    {/snippet}
     {#snippet right()}
+      {#if app.wide}
+        <button class="pill" onclick={() => (importMenu = true)} title={t('project.import')}><Icon name="plus" size={17} /> {t('project.import')}</button>
+        <button class="pill accent" disabled={!s.pending} onclick={() => startTriage(0)} title="T"><Icon name="skip" size={17} /> {t('project.startTriage')}</button>
+      {/if}
       <NavButton icon="share" onclick={() => (app.sheet = 'export')} disabled={!s.total} />
       <NavButton icon="more" onclick={() => (app.sheet = 'menu')} />
     {/snippet}
   </NavBar>
+  {#if app.wide}
+    <div class="topseg">
+      <div class="seg">
+        {#each tabs as tb, i}
+          <button class:on={app.tab === tb.id} onclick={() => (app.tab = tb.id)} title="{i + 1}">
+            <Icon name={tb.icon} size={16} stroke={2} /> {t(tb.label)}
+            {#if tb.id === 'inbox' && s.pending}<span class="cnt">{s.pending}</span>{/if}
+          </button>
+        {/each}
+      </div>
+    </div>
+  {/if}
 
   <div class="content">
     {#key app.tab}
@@ -73,7 +111,7 @@
             <div class="big">{s.pending}</div>
             <div class="lbl">{s.pending === 1 ? t('project.pending1') : t('project.pending')}</div>
             <div class="sub">{t('project.summary', { s: s.sorted, t: s.trashed })} · {mapName(mapById(p.mapId))}</div>
-            <div class="actions">
+            <div class="actions" class:hide={app.wide}>
               <button class="btn" disabled={!s.pending} onclick={() => startTriage(0)}>
                 <Icon name="skip" size={20} /> {t('project.startTriage')}
               </button>
@@ -113,6 +151,7 @@
     {/key}
   </div>
 
+  {#if !app.wide}
   <nav class="tabbar">
     {#each tabs as tb}
       <button class="tab" class:on={app.tab === tb.id} onclick={() => (app.tab = tb.id)}>
@@ -124,6 +163,11 @@
       </button>
     {/each}
   </nav>
+  {/if}
+  {#if dropping}
+    <div class="dropping"><div><Icon name="photos" size={40} stroke={1.6} /><span>{t('project.dropHere')}</span></div></div>
+  {/if}
+  </div>
 
   {#if importMenu}
     <ActionSheet
@@ -152,6 +196,18 @@
 {/if}
 
 <style>
+  .drop-zone { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .where { margin-left: 8px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 9px; background: var(--fill); color: var(--accent); font-size: 14px; font-weight: 600; margin-right: 4px; }
+  .pill.accent { background: var(--accent); color: #fff; }
+  .pill:disabled { opacity: 0.4; }
+  .topseg { display: flex; justify-content: center; padding: 8px 16px 6px; flex: none; border-bottom: 0.5px solid var(--sep); }
+  .topseg .seg { display: inline-grid; grid-auto-flow: column; background: var(--fill); border-radius: 9px; padding: 2px; }
+  .topseg .seg button { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 16px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--label2); }
+  .topseg .seg button.on { background: var(--bg2); color: var(--label); box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+  .topseg .cnt { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; line-height: 18px; }
+  .dropping { position: absolute; inset: 8px; z-index: 40; border: 2px dashed var(--accent); border-radius: 16px; background: color-mix(in srgb, var(--accent) 10%, var(--bg) 80%); display: grid; place-items: center; pointer-events: none; }
+  .dropping div { display: grid; justify-items: center; gap: 8px; color: var(--accent); font-weight: 600; }
   .content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .tabview { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .hero { padding: 8px 16px 18px; }
@@ -159,6 +215,7 @@
   .lbl { font-size: 17px; font-weight: 600; margin-top: 2px; }
   .sub { font-size: 13px; color: var(--label2); margin-top: 4px; }
   .actions { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; margin-top: 16px; }
+  .actions.hide { display: none; }
   .hint { text-align: center; font-size: 12px; color: var(--label3); padding: 14px 24px 0; }
   .empty { display: grid; gap: 10px; padding: 64px 28px 20px; text-align: center; }
   .ei { color: var(--label3); }

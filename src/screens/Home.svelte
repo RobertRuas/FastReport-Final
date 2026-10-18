@@ -45,7 +45,7 @@
         {#each app.projects as p, i (p.id)}
           {@const s = stats(p)}
           {@const cv = covers(p)}
-          <button class="card" onclick={() => open(p)} in:fly={{ y: 16, duration: 450, delay: Math.min(i, 8) * 40, easing: iosEase }}>
+          <button class="card" class:sel={app.wide && app.projectId === p.id} onclick={() => open(p)} in:fly={{ y: 16, duration: 450, delay: Math.min(i, 8) * 40, easing: iosEase }}>
             <div class="cover" class:mosaic={cv.length >= 4}>
               {#if cv.length >= 4}
                 {#each cv as c (c.id)}<img src={c.thumb} alt="" />{/each}
@@ -96,6 +96,7 @@
     text-align: left; transition: transform 0.15s var(--ease), background 0.15s;
   }
   .card:active { transform: scale(0.98); background: var(--bg3); }
+  .card.sel { box-shadow: inset 0 0 0 2px var(--accent); }
   .cover {
     width: 82px; height: 82px; flex: none; border-radius: 13px; overflow: hidden;
     background: var(--fill); display: grid; place-items: center; color: var(--label3);

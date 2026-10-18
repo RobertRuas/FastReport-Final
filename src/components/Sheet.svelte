@@ -1,7 +1,7 @@
 <script>
   import { fade } from 'svelte/transition';
   import { iosEase } from '../lib/ease.js';
-  let { onclose, children, height = 'auto' } = $props();
+  let { onclose, children, height = 'auto', max = '640px' } = $props();
   let dy = $state(0);
   let startY = null;
   function slide(node) {
@@ -16,7 +16,7 @@
 </script>
 
 <div class="scrim" transition:fade={{ duration: 300 }} onclick={onclose} role="presentation"></div>
-<div class="sheet" style:height style:transform={dy ? `translateY(${dy}px)` : null} class:dragging={dy > 0} transition:slide>
+<div class="sheet" style:max-width={max} style:height style:transform={dy ? `translateY(${dy}px)` : null} class:dragging={dy > 0} transition:slide>
   <div class="grab" ontouchstart={down} ontouchmove={move} ontouchend={up} role="presentation"><span></span></div>
   {@render children()}
 </div>

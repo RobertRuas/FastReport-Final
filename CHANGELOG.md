@@ -2,6 +2,16 @@
 
 O formato segue, de forma simples, o [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
+## [0.3.0] — 2026-10-18 · Fase 2
+
+### Adicionado
+- Layout de ecrã largo (≥ 900 px): barra lateral com os projetos e o projeto ao lado; separadores no topo; botões Importar e Iniciar triagem na barra.
+- Triagem por teclado com as regras do Mac: número (até 2 dígitos) + Enter, `0`/`G` → Geral, Enter sem número → pasta do grupo (C12/C25), Tab/⇧Tab muda de grupo, ⌘⌫ → Lixeira, ⌘Z, ←/→, S, R, F, C (Enter aplica o corte), `+`/`−`/⌘0 e pinça do trackpad para zoom.
+- Visualizador com teclado (←/→, R, F, M, ⌘⌫, Esc), setas laterais e zoom com trackpad.
+- Atalhos gerais: ⌘N, ⌘O, ⌘,, ⌘E, ⌘1/2/3, ⌘+/⌘− (miniaturas), ⌘⇧W, T, `?`.
+- Folha de atalhos e notas da versão (Definições → Novidades; aparecem sozinhas depois de uma atualização).
+- Arrastar fotos do Finder para a janela do projeto importa-as para Sem categoria.
+
 ## [0.2.0] — 2026-10-18 · Fase 1
 
 ### Adicionado
