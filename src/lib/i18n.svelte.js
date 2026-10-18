@@ -20,7 +20,7 @@ const PT = {
   'home.pending': '{n} por classificar',
   'home.exported': 'Exportado',
   'home.notExported': 'Não exportado',
-  'home.storage': '{size} guardados no iPhone',
+  'home.storage': '{size} guardados no {dev}',
   'home.storage.protected': 'armazenamento protegido',
   'home.warn': '{n} projetos por exportar. Exporta antes de os apagar.',
   'home.warn1': '1 projeto por exportar. Exporta antes de o apagar.',
@@ -65,7 +65,7 @@ const PT = {
   'project.menu.rename': 'Mudar o nome',
   'project.menu.delete': 'Apagar projeto',
   'project.delete.title': 'Apagar projeto?',
-  'project.delete.exported': 'As {n} fotos saem do iPhone. O projeto já foi exportado.',
+  'project.delete.exported': 'As {n} fotos saem do {dev}. O projeto já foi exportado.',
   'project.delete.notExported': 'Este projeto ainda NÃO foi exportado. As {n} fotos vão perder-se.',
   'project.deleted': 'Projeto apagado',
   'project.rename.prompt': 'Novo nome do projeto',
@@ -107,9 +107,9 @@ const PT = {
   'export.help': 'Escolhe "Guardar em Ficheiros" ou AirDrop para o Mac. As pastas e os nomes ficam iguais aos do FastReport no Mac.',
   'export.done': 'Exportado às {time}',
   'export.again': 'Exportar outra vez',
-  'export.deleteFromPhone': 'Apagar projeto do iPhone',
+  'export.deleteFromPhone': 'Apagar projeto do {dev}',
   'export.deleteHint': 'Só apaga quando confirmares que o ZIP está guardado.',
-  'export.delete.title': 'Apagar projeto do iPhone?',
+  'export.delete.title': 'Apagar projeto do {dev}?',
   'export.delete.body': 'Confirma que o ZIP ficou guardado. As {n} fotos saem desta app.',
   'export.contents': 'Conteúdo',
   'export.metadata': 'metadados',
@@ -131,15 +131,15 @@ const PT = {
 
   'settings.photos': 'Fotos',
   'settings.auto': 'Automático',
-  'settings.autoLang': 'Automático (idioma do iPhone)',
+  'settings.autoLang': 'Automático (idioma do sistema)',
   'settings.uiSize': 'Tamanho da interface',
   'settings.ui.0': 'Pequeno',
   'settings.ui.1': 'Normal',
   'settings.ui.2': 'Grande',
   'settings.ui.3': 'Muito grande',
-  'settings.uiHint': 'Muda o tamanho da letra, botões e ícones em toda a app. As fotos ficam sempre em 1024 px.',
+  'settings.uiHint': 'Muda o tamanho da letra, botões e ícones em toda a app.',
   'settings.theme': 'Aparência',
-  'settings.theme.auto': 'Automática (como o iPhone)',
+  'settings.theme.auto': 'Automática (como o sistema)',
   'settings.theme.light': 'Clara',
   'settings.theme.dark': 'Escura',
   'settings.colsAutoHint': 'Em automático ajusta-se ao ecrã. Juntar ou afastar dois dedos sobre as miniaturas muda para um valor fixo.',
@@ -229,7 +229,29 @@ const PT = {
   'shortcuts.this': "Esta lista de atalhos",
   'shortcuts.hint': "Na app instalada (ícone de instalar do Chrome) os atalhos com ⌘ não chocam com os do browser.",
   'notes.title': "Novidades",
-  'notes.current': "atual"
+  'notes.current': "atual",
+  'project.delivery': "Entrega",
+  'delivery.banner': "Arrasta cada foto para o relatório, pasta a pasta. As já colocadas ficam esbatidas; podes arrastá-las outra vez.",
+  'delivery.status': "{n} / {t} colocadas",
+  'delivery.empty': "Ainda não há fotos classificadas para entregar.",
+  'delivery.hint': "Clique abre a foto · botão direito para marcar ou copiar · arrastar para o Word marca como colocada.",
+  'delivery.mark': "Marcar como colocada",
+  'delivery.unmark': "Desmarcar",
+  'delivery.copy': "Copiar imagem",
+  'delivery.open': "Abrir",
+  'delivery.copied': "Imagem copiada · cola no relatório",
+  'delivery.copyFailed': "Este browser não deixou copiar a imagem.",
+  'delivery.reset': "Limpar marcações",
+  'delivery.reset.title': "Limpar marcações?",
+  'delivery.reset.body': "Todas as fotos voltam a aparecer como por colocar. As fotos não mudam.",
+  'settings.images': "Imagens",
+  'settings.image.size': "Tamanho máximo ao importar",
+  'settings.image.quality': "Qualidade JPEG",
+  'settings.image.quality.high': "Alta (85%)",
+  'settings.image.quality.medium': "Média (70%)",
+  'settings.imagesHint': "Aplica-se às fotos que importares a partir de agora e às que rodares, inverteres ou cortares. 1024 px chega para relatórios; mais é útil para ver detalhe.",
+  'settings.no.desktop': "Não (separador do browser)",
+  'settings.storageHint.desktop': "Os projetos “Nesta app” ficam guardados no browser até os apagares; exporta o ZIP para os levar. Os projetos em pasta vivem no disco e não contam aqui."
 };
 
 const EN = {
@@ -250,7 +272,7 @@ const EN = {
   'home.pending': '{n} to sort',
   'home.exported': 'Exported',
   'home.notExported': 'Not exported',
-  'home.storage': '{size} stored on this iPhone',
+  'home.storage': '{size} stored on this {dev}',
   'home.storage.protected': 'protected storage',
   'home.warn': '{n} projects not exported yet. Export before deleting them.',
   'home.warn1': '1 project not exported yet. Export before deleting it.',
@@ -295,7 +317,7 @@ const EN = {
   'project.menu.rename': 'Rename',
   'project.menu.delete': 'Delete project',
   'project.delete.title': 'Delete project?',
-  'project.delete.exported': 'The {n} photos will leave this iPhone. The project was already exported.',
+  'project.delete.exported': 'The {n} photos will leave this {dev}. The project was already exported.',
   'project.delete.notExported': 'This project has NOT been exported. The {n} photos will be lost.',
   'project.deleted': 'Project deleted',
   'project.rename.prompt': 'New project name',
@@ -337,9 +359,9 @@ const EN = {
   'export.help': 'Choose “Save to Files” or AirDrop it to your Mac. Folders and names match FastReport for Mac.',
   'export.done': 'Exported at {time}',
   'export.again': 'Export again',
-  'export.deleteFromPhone': 'Delete project from iPhone',
+  'export.deleteFromPhone': 'Delete project from {dev}',
   'export.deleteHint': 'Only delete once you have confirmed the ZIP is saved.',
-  'export.delete.title': 'Delete project from iPhone?',
+  'export.delete.title': 'Delete project from {dev}?',
   'export.delete.body': 'Make sure the ZIP was saved. The {n} photos will leave this app.',
   'export.contents': 'Contents',
   'export.metadata': 'metadata',
@@ -361,15 +383,15 @@ const EN = {
 
   'settings.photos': 'Photos',
   'settings.auto': 'Automatic',
-  'settings.autoLang': 'Automatic (iPhone language)',
+  'settings.autoLang': 'Automatic (system language)',
   'settings.uiSize': 'Interface size',
   'settings.ui.0': 'Small',
   'settings.ui.1': 'Normal',
   'settings.ui.2': 'Large',
   'settings.ui.3': 'Extra large',
-  'settings.uiHint': 'Changes the size of text, buttons and icons across the app. Photos are always 1024 px.',
+  'settings.uiHint': 'Changes the size of text, buttons and icons across the app.',
   'settings.theme': 'Appearance',
-  'settings.theme.auto': 'Automatic (follow iPhone)',
+  'settings.theme.auto': 'Automatic (follow system)',
   'settings.theme.light': 'Light',
   'settings.theme.dark': 'Dark',
   'settings.colsAutoHint': 'Automatic adapts to the screen. Pinching on the thumbnails switches to a fixed value.',
@@ -459,13 +481,41 @@ const EN = {
   'shortcuts.this': "This shortcut list",
   'shortcuts.hint': "In the installed app (Chrome's install icon) ⌘ shortcuts don't clash with the browser's.",
   'notes.title': "What's new",
-  'notes.current': "current"
+  'notes.current': "current",
+  'project.delivery': "Delivery",
+  'delivery.banner': "Drag each photo into the report, folder by folder. Placed photos fade; you can drag them again.",
+  'delivery.status': "{n} / {t} placed",
+  'delivery.empty': "There are no classified photos to deliver yet.",
+  'delivery.hint': "Click opens the photo · right-click to mark or copy · dragging into Word marks it as placed.",
+  'delivery.mark': "Mark as placed",
+  'delivery.unmark': "Unmark",
+  'delivery.copy': "Copy image",
+  'delivery.open': "Open",
+  'delivery.copied': "Image copied · paste into the report",
+  'delivery.copyFailed': "This browser didn't allow copying the image.",
+  'delivery.reset': "Clear marks",
+  'delivery.reset.title': "Clear marks?",
+  'delivery.reset.body': "All photos show as not placed again. The photos themselves don't change.",
+  'settings.images': "Images",
+  'settings.image.size': "Maximum size on import",
+  'settings.image.quality': "JPEG quality",
+  'settings.image.quality.high': "High (85%)",
+  'settings.image.quality.medium': "Medium (70%)",
+  'settings.imagesHint': "Applies to photos you import from now on and to those you rotate, flip or crop. 1024 px is enough for reports; more helps with detail.",
+  'settings.no.desktop': "No (browser tab)",
+  'settings.storageHint.desktop': "“In this app” projects stay in the browser until you delete them; export the ZIP to take them elsewhere. Folder projects live on disk and don't count here."
 };
 
 const DICTS = { pt: PT, en: EN };
 
+// Os textos vieram do iPhone; no computador falam do computador.
+const IOS = typeof navigator !== 'undefined' && (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const DEVICE = { pt: IOS ? 'iPhone' : 'computador', en: IOS ? 'iPhone' : 'computer' };
+
 export function t(key, vars) {
+  if (!IOS && DICTS[lang.code]?.[key + '.desktop']) key += '.desktop';
   let s = DICTS[lang.code]?.[key] ?? PT[key] ?? key;
+  s = s.replaceAll('{dev}', DEVICE[lang.code] ?? DEVICE.pt);
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
   return s;
 }

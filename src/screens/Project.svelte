@@ -7,6 +7,7 @@
   import PinchGrid from '../components/PinchGrid.svelte';
   import ActionSheet from '../components/ActionSheet.svelte';
   import Review from './Review.svelte';
+  import Delivery from './Delivery.svelte';
   import { fade } from 'svelte/transition';
 
   const p = $derived(current());
@@ -18,7 +19,8 @@
 
   const tabs = [
     { id: 'inbox', label: 'project.inbox', icon: 'inbox' },
-    { id: 'review', label: 'project.review', icon: 'review' }
+    { id: 'review', label: 'project.review', icon: 'review' },
+    { id: 'delivery', label: 'project.delivery', icon: 'delivery' }
   ];
 
   // Arrastar fotos do Finder (ou de outra app) para a janela importa-as para Sem categoria.
@@ -144,6 +146,8 @@
         {/if}
         <div style="height: 24px"></div>
       </div>
+    {:else if app.tab === 'delivery'}
+      <Delivery project={p} />
     {:else}
       <Review project={p} />
     {/if}
@@ -225,7 +229,7 @@
   .db { color: var(--label2); margin-bottom: 12px; }
   .row-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
   .tabbar {
-    display: grid; grid-template-columns: repeat(2, 1fr);
+    display: grid; grid-template-columns: repeat(3, 1fr);
     padding-bottom: var(--sab);
     background: var(--bar);
     -webkit-backdrop-filter: saturate(180%) blur(20px);

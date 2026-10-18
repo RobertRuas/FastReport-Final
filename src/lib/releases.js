@@ -1,6 +1,20 @@
 // Notas da versão (aparecem uma vez depois de cada atualização e em Definições → Novidades).
 export const RELEASES = [
   {
+    version: '0.4.0',
+    date: '2026-10-18',
+    pt: [
+      'Entrega: quadro para arrastar as fotos para o Word/Pages, pasta a pasta, com marcação das já colocadas (compatível com o Mac).',
+      'Copiar imagem para colar no relatório (botão direito numa foto da Entrega).',
+      'Definições → Imagens: tamanho máximo (1024, 1600, 2048 px) e qualidade JPEG.'
+    ],
+    en: [
+      'Delivery: board to drag photos into Word/Pages, folder by folder, marking the ones already placed (Mac compatible).',
+      'Copy image to paste into the report (right-click a photo in Delivery).',
+      'Settings → Images: maximum size (1024, 1600, 2048 px) and JPEG quality.'
+    ]
+  },
+  {
     version: '0.3.0',
     date: '2026-10-18',
     pt: [

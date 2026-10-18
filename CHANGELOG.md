@@ -2,6 +2,14 @@
 
 O formato segue, de forma simples, o [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
+## [0.4.0] — 2026-10-18 · Fase 3
+
+### Adicionado
+- Separador **Entrega**: fotos classificadas por pasta, para arrastar para o Word/Pages. Arrastar leva o ficheiro com o nome final (`DownloadURL`) e a imagem em HTML; quando o destino aceita, a foto fica marcada como colocada. Clique abre a foto; botão direito marca/desmarca ou copia a imagem; contador "n / total colocadas" e "Limpar marcações".
+- Marcações guardadas no projeto (modo interno) ou em `fastreport-delivery.json` (modo pasta, igual ao Mac).
+- Definições → Imagens: tamanho máximo ao importar (1024 / 1600 / 2048 px) e qualidade JPEG (alta 85 % / média 70 %), como no Mac.
+- Textos do computador já não falam do "iPhone".
+
 ## [0.3.0] — 2026-10-18 · Fase 2
 
 ### Adicionado

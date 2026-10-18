@@ -1,11 +1,11 @@
 <script>
-  import { app, APP_VERSION, formatBytes, stats, setCols, setLang, setTheme, setUi, createDemo, colsNow, UI_SIZES, deviceLang } from '../lib/state.svelte.js';
+  import { app, APP_VERSION, IMAGE_SIZES, QUALITIES, setImagePx, setQuality, formatBytes, stats, setCols, setLang, setTheme, setUi, createDemo, colsNow, UI_SIZES, deviceLang } from '../lib/state.svelte.js';
   import { t } from '../lib/i18n.svelte.js';
   import { offlineCapable } from '../lib/pwa.js';
   import NavBar from '../components/NavBar.svelte';
   import NavButton from '../components/NavButton.svelte';
   import Icon from '../components/Icon.svelte';
-  const bytes = $derived(app.projects.reduce((a, p) => a + stats(p).bytes, 0));
+  const bytes = $derived(app.projects.filter((p) => p.kind !== 'folder').reduce((a, p) => a + stats(p).bytes, 0));
   const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   const offline = offlineCapable();
   const themes = ['auto', 'light', 'dark'];
@@ -70,6 +70,23 @@
   </div>
   <div class="foot">{t('settings.uiHint')}</div>
 
+  <div class="section-title">{t('settings.images')}</div>
+  <div class="group pad">
+    <div class="lbl">{t('settings.image.size')}</div>
+    <div class="seg3">
+      {#each IMAGE_SIZES as px}
+        <button class:sel={app.imagePx === px} onclick={() => setImagePx(px)}>{px} px</button>
+      {/each}
+    </div>
+    <div class="lbl">{t('settings.image.quality')}</div>
+    <div class="seg3">
+      {#each QUALITIES as q}
+        <button class:sel={app.jpegQuality === q.value} onclick={() => setQuality(q.value)}>{t(`settings.image.quality.${q.id}`)}</button>
+      {/each}
+    </div>
+  </div>
+  <div class="foot">{t('settings.imagesHint')}</div>
+
   <div class="section-title">{t('settings.storage')}</div>
   <div class="group">
     <div class="row"><span class="grow">{t('settings.used')}</span><span class="value">{formatBytes(bytes)}</span></div>
@@ -115,6 +132,11 @@
   .seg button.on { background: var(--bg2); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
   .preview { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 3px; margin-top: 12px; }
   .preview span { height: 26px; border-radius: 3px; background: var(--accent); opacity: 0.35; animation: pop 0.3s var(--ease); }
+  .lbl { font-size: 13px; color: var(--label2); margin: 2px 2px 6px; }
+  .lbl + .seg3 { margin-bottom: 12px; }
+  .seg3 { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--fill); border-radius: 9px; padding: 2px; }
+  .seg3 button { height: 30px; border-radius: 7px; font-size: 13px; font-weight: 600; transition: background 0.25s var(--ease), box-shadow 0.25s; }
+  .seg3 button.sel { background: var(--bg2); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
   .sizes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .sizes button { height: 56px; border-radius: 10px; background: var(--fill); display: grid; place-items: center; font-weight: 600; color: var(--label2); transition: background 0.25s var(--ease), color 0.25s, transform 0.15s; }
   .sizes button:active { transform: scale(0.95); }
