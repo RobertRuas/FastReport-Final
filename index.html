@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FastReport" />
+    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <title>FastReport</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- Rede de segurança: se a app não arrancar, permite limpar a cache da app (as fotos ficam). -->
+    <script>
+      setTimeout(function () {
+        if (document.getElementById('app').childElementCount) return;
+        var pt = /^pt/i.test(navigator.language || '');
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;inset:0;display:grid;place-content:center;gap:16px;padding:24px;text-align:center;font:17px -apple-system,system-ui,sans-serif;background:#f2f2f7;color:#000';
+        d.innerHTML = '<div>' + (pt ? 'A app não arrancou.' : 'The app did not start.') + '</div><button style="font:inherit;font-weight:600;padding:14px 22px;border:0;border-radius:14px;background:#0f9d63;color:#fff">' + (pt ? 'Reparar e recarregar' : 'Repair and reload') + '</button><div style="font-size:13px;color:#888">' + (pt ? 'Os projetos e as fotos não são apagados.' : 'Projects and photos are kept.') + '</div>';
+        d.querySelector('button').onclick = async function () {
+          try {
+            var regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(function (r) { return r.unregister(); }));
+            var keys = await caches.keys();
+            await Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          } catch (e) {}
+          location.reload();
+        };
+        document.body.appendChild(d);
+      }, 5000);
+    </script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+name: Sugerir uma melhoria
+description: Uma ideia ou funcionalidade nova
+labels: ["melhoria"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Qual é a ideia?
+      description: O que gostarias de poder fazer, e porquê.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: Em que situação isto ajudaria? Alguma alternativa que já tentaste?

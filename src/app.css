@@ -1,0 +1,257 @@
+:root {
+  --accent: #0f9d63;
+  --accent-soft: rgba(15, 157, 99, 0.14);
+  --bg: #f2f2f7;
+  --bg2: #ffffff;
+  --bg3: #e5e5ea;
+  --label: #000000;
+  --label2: rgba(60, 60, 67, 0.6);
+  --label3: rgba(60, 60, 67, 0.3);
+  --sep: rgba(60, 60, 67, 0.22);
+  --fill: rgba(120, 120, 128, 0.12);
+  --fill2: rgba(120, 120, 128, 0.2);
+  --bar: rgba(249, 249, 249, 0.82);
+  --orange: #ff9500;
+  --red: #ff3b30;
+  --green: #34c759;
+  --yellow: #ffcc00;
+  --blue: #007aff;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --accent: #23c07f;
+    --accent-soft: rgba(35, 192, 127, 0.18);
+    --bg: #000000;
+    --bg2: #1c1c1e;
+    --bg3: #2c2c2e;
+    --label: #ffffff;
+    --label2: rgba(235, 235, 245, 0.6);
+    --label3: rgba(235, 235, 245, 0.3);
+    --sep: rgba(84, 84, 88, 0.55);
+    --fill: rgba(120, 120, 128, 0.24);
+    --fill2: rgba(120, 120, 128, 0.36);
+    --bar: rgba(22, 22, 24, 0.8);
+    --orange: #ff9f0a;
+    --red: #ff453a;
+    --green: #30d158;
+    --yellow: #ffd60a;
+    --blue: #0a84ff;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+    --accent: #23c07f;
+    --accent-soft: rgba(35, 192, 127, 0.18);
+    --bg: #000000;
+    --bg2: #1c1c1e;
+    --bg3: #2c2c2e;
+    --label: #ffffff;
+    --label2: rgba(235, 235, 245, 0.6);
+    --label3: rgba(235, 235, 245, 0.3);
+    --sep: rgba(84, 84, 88, 0.55);
+    --fill: rgba(120, 120, 128, 0.24);
+    --fill2: rgba(120, 120, 128, 0.36);
+    --bar: rgba(22, 22, 24, 0.8);
+    --orange: #ff9f0a;
+    --red: #ff453a;
+    --green: #30d158;
+    --yellow: #ffd60a;
+    --blue: #0a84ff;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+}
+
+:root[data-theme='light'] { color-scheme: light; }
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--label);
+  font: 17px/1.29 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+body { position: fixed; inset: 0; overflow: hidden; }
+
+/* Ocupa o ecrã todo, em retrato e em paisagem; em paisagem fica fora do entalhe (notch). */
+#app {
+  position: absolute;
+  top: 0; bottom: 0; left: var(--sal); right: var(--sar);
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Ecrãs pretos (triagem, visualizador): as faixas ao lado do entalhe também ficam pretas. */
+body:has(.triage, .viewer) { background: #000; }
+
+/* Só no computador (rato) se mostra a app em coluna, com o tamanho de um telemóvel. */
+@media (min-width: 600px) and (hover: hover) and (pointer: fine) {
+  body { background: #111; }
+  #app { max-width: 430px; box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 20px 80px rgba(0,0,0,0.5); }
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input { font: inherit; color: inherit; }
+
+img { -webkit-user-drag: none; user-select: none; }
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+  will-change: transform;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.tap { transition: opacity 0.15s; }
+.tap:active { opacity: 0.45; transition: none; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
+  gap: 2px;
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--fill);
+  border-radius: 2px;
+  touch-action: manipulation;
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--label2);
+  padding: 22px 20px 7px;
+  letter-spacing: 0;
+}
+
+.group {
+  background: var(--bg2);
+  border-radius: 12px;
+  margin: 0 16px;
+  overflow: hidden;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 16px;
+  position: relative;
+  width: 100%;
+  text-align: left;
+}
+.row + .row::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 16px; right: 0;
+  height: 0.5px;
+  background: var(--sep);
+}
+.row .grow { flex: 1; min-width: 0; }
+.row .value { color: var(--label2); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 50px;
+  padding: 0 20px;
+  border-radius: 14px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  transition: transform 0.12s, opacity 0.12s;
+}
+.btn:active { transform: scale(0.97); opacity: 0.85; }
+.btn.secondary { background: var(--fill); color: var(--accent); }
+.btn.danger { background: var(--fill); color: var(--red); }
+.btn:disabled { opacity: 0.35; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 99px;
+}
+.badge.orange { color: var(--orange); background: color-mix(in srgb, var(--orange) 15%, transparent); }
+.badge.green { color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+
+/* Sortable */
+.sortable-ghost { opacity: 0.25; }
+.strip .sortable-chosen img, .dragging .sortable-chosen img { transform: scale(0.94); transition: transform 0.15s; }
+.sortable-fallback {
+  opacity: 1 !important;
+  transform-origin: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  border-radius: 6px !important;
+  z-index: 1000 !important;
+}
+.sortable-fallback img { transform: scale(1.08); }
+.sortable-drag { opacity: 1 !important; }
+
+/* Movimento */
+@keyframes fade-in { from { opacity: 0; } }
+.thumb img { animation: fade-in 0.35s ease-out both; }
+.screen, .tap, .btn { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

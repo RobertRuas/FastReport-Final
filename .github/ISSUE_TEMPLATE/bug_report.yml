@@ -1,0 +1,35 @@
+name: Reportar um erro
+description: Algo não funciona como esperado
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: O que aconteceu?
+      description: Descreve o problema e o que esperavas que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+  - type: dropdown
+    id: device
+    attributes:
+      label: Onde?
+      options:
+        - Telemóvel (iPhone/Safari)
+        - Computador (Chrome/Edge)
+        - Computador (Safari)
+        - Outro
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versão da app
+      description: Vê em Definições → Versão.
