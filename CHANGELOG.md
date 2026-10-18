@@ -2,6 +2,14 @@
 
 O formato segue, de forma simples, o [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
+## [0.5.1] — 2026-10-18 · Fase 5 (preparação)
+
+### Corrigido
+- Modo pasta: ler a pasta já não falha quando um ficheiro desaparece a meio (Finder ou outra app); a recuperação depois de um erro de disco corre uma só vez, sem ciclos.
+
+### Adicionado
+- Testes de carga com 320 fotos nos dois modos e lista de verificação para o teste real ([docs/TESTE-REAL.md](docs/TESTE-REAL.md)).
+
 ## [0.5.0] — 2026-10-18 · Fase 4
 
 ### Adicionado

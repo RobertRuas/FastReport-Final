@@ -1,7 +1,7 @@
 {
   "name": "fastreport-final",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Organizar fotos de trabalho em projetos — PWA que corre no telemóvel como app nativa e no computador em ecrã grande.",
   "type": "module",
   "license": "MIT",

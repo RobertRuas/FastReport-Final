@@ -1,5 +1,17 @@
 # FastReport: viabilidade da unificação (Mac + telemóvel → um só PWA)
 
+> **Estado (18/10/2026):** fases 0 a 4 concluídas e publicadas (v0.1.0 → v0.5.0, ver [CHANGELOG](CHANGELOG.md)).
+> Fase 5: testes de carga automáticos feitos (320 fotos nos dois modos); falta o teste real no iPhone e no Mac — lista em [docs/TESTE-REAL.md](docs/TESTE-REAL.md) — e depois arquivar o repositório Swift.
+
+| Fase | Estado |
+|---|---|
+| 0 · Repositório, testes, manifesto | ✅ v0.1.0 |
+| 1 · Armazenamento interno + pasta no disco, watcher, HEIC | ✅ v0.2.0 |
+| 2 · Ecrã largo, teclado completo, folha de atalhos | ✅ v0.3.0 |
+| 3 · Entrega com marcações, definições de imagem, notas da versão | ✅ v0.4.0 |
+| 4 · Passagem de design (+ CSV de contagens e aviso de repetidas) | ✅ v0.5.0 |
+| 5 · Teste real, 1.0, arquivar repo Swift | 🟡 à espera do teste no iPhone e no Mac |
+
 **Veredito: é viável.** A melhor base é o **FastReport-Mobile (Svelte 5 + Vite, já é PWA)**. O app de Mac (Swift/SwiftUI) não se reaproveita como código, mas serve de especificação: as suas funcionalidades exclusivas são portadas para a web. Os mapas JSON são **idênticos** nos dois repositórios e o formato de pastas/nomes já é compatível (o ZIP do telemóvel abre no Mac).
 
 Repositórios analisados: `RobertRuas/FastReport` (último commit 30/09/2026) e `RobertRuas/FastReport-Mobile` (último commit 18/10/2026, v1.5.0).

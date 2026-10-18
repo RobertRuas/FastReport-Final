@@ -108,7 +108,12 @@ export async function scan(root, map) {
       files.push({ name, handle: h });
     }
     files.sort((a, b) => natural.compare(a.name, b.name));
-    for (const f of files) out.push({ slot: slot.id, name: f.name, path: `${slotPath(slot)}/${f.name}`, file: await f.handle.getFile() });
+    for (const f of files) {
+      // Um ficheiro pode desaparecer entre a listagem e a leitura (Finder, outra app): ignora-se.
+      let file;
+      try { file = await f.handle.getFile(); } catch (e) { if (e?.name === 'NotFoundError') continue; throw e; }
+      out.push({ slot: slot.id, name: f.name, path: `${slotPath(slot)}/${f.name}`, file });
+    }
   }
   return out;
 }

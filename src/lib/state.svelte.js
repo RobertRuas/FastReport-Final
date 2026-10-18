@@ -334,10 +334,14 @@ function enqueue(p, job) {
   return next;
 }
 
+const recovering = new Set();
 function diskError(p, e) {
   toast(e?.name === 'NotAllowedError' ? t('folder.noPermission') : t('folder.error'), 'danger');
-  // Volta a ler o disco para o ecrã mostrar o que lá está de facto.
-  enqueue(p, () => reload(p, true));
+  // Volta a ler o disco para o ecrã mostrar o que lá está de facto (uma vez; sem ciclos de erro).
+  if (recovering.has(p.id)) return;
+  recovering.add(p.id);
+  const prev = queues.get(p.id) ?? Promise.resolve();
+  queues.set(p.id, prev.then(() => reload(p, true, true)).catch((err) => console.error('recover', err)).finally(() => recovering.delete(p.id)));
 }
 
 function metaFor(name, mapId, createdAt) {
