@@ -19,31 +19,13 @@
     return isFolder(project) ? ph.name : fileName(project, slot, i + 1);
   }
 
-  // Para o Word aceitar a imagem ao largar, o arrasto leva também a foto em HTML (data URL).
-  // A conversão é assíncrona, por isso prepara-se quando o rato passa por cima.
-  const dataUrls = new Map();
-  async function prepare(ph) {
-    if (dataUrls.has(ph.id)) return;
-    dataUrls.set(ph.id, null);
-    try {
-      const blob = await photoBlob(project, ph);
-      const url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
-      dataUrls.set(ph.id, url);
-    } catch { dataUrls.delete(ph.id); }
-  }
+  // Arrastar para o Word/Pages: usa-se o arrasto nativo da própria imagem em tamanho real.
+  // O Chrome entrega assim os bytes da foto à outra app (como ao arrastar uma imagem de um site).
+  // Um "DownloadURL" com blob: ou HTML com data: chegavam ao destino mas a imagem não carregava.
+  // A miniatura troca pela foto completa quando o rato passa por cima, antes do arrasto começar.
+  let hot = $state(new Set());
+  function warm(ph) { if (!hot.has(ph.id)) hot = new Set(hot).add(ph.id); }
 
-  function dragstart(e, slot, ph, i) {
-    const name = nameOf(slot, ph, i);
-    const dt = e.dataTransfer;
-    dt.effectAllowed = 'copy';
-    // Chrome: arrastar para o Finder/Word cria o ficheiro com o nome certo.
-    dt.setData('DownloadURL', `image/jpeg:${name}:${ph.full}`);
-    const data = dataUrls.get(ph.id);
-    if (data) dt.setData('text/html', `<img src="${data}" alt="${name}">`);
-    dt.setData('text/plain', name);
-    const img = e.currentTarget.querySelector('img');
-    if (img) dt.setDragImage(img, img.width / 2, img.height / 2);
-  }
   function dragend(e, ph) {
     // O destino aceitou a foto (copy): fica marcada como colocada.
     if (e.dataTransfer?.dropEffect && e.dataTransfer.dropEffect !== 'none') setPlaced(project, ph, true);
@@ -112,11 +94,9 @@
                 <div
                   class="thumb cell"
                   class:on
-                  draggable="true"
                   title={nameOf(slot, ph, i)}
-                  onpointerenter={() => prepare(ph)}
-                  onpointerdown={() => prepare(ph)}
-                  ondragstart={(e) => dragstart(e, slot, ph, i)}
+                  onpointerenter={() => warm(ph)}
+                  onpointerdown={() => warm(ph)}
                   ondragend={(e) => dragend(e, ph)}
                   onclick={() => open(slot, i)}
                   oncontextmenu={(e) => context(e, slot, ph, i)}
@@ -124,7 +104,7 @@
                   tabindex="0"
                   onkeydown={(e) => { if (e.key === 'Enter') open(slot, i); if (e.key === ' ') { e.preventDefault(); setPlaced(project, ph); } }}
                 >
-                  <img src={ph.thumb} alt="" loading="lazy" decoding="async" draggable="false" />
+                  <img class="drag" src={hot.has(ph.id) ? ph.full : ph.thumb} alt={nameOf(slot, ph, i)} loading="lazy" decoding="async" draggable="true" />
                   <button class="mark" class:on aria-label={on ? t('delivery.unmark') : t('delivery.mark')} onclick={(e) => { e.stopPropagation(); setPlaced(project, ph); }}>
                     <Icon name="check" size={13} stroke={3.2} />
                   </button>
@@ -165,6 +145,8 @@
   .grid { padding: 0 8px; gap: 4px; }
   .cell { border-radius: 4px; cursor: grab; }
   .cell img { transition: opacity 0.2s; }
+  /* A imagem é a origem do arrasto (o CSS global desliga o arrasto e os cliques nas imagens). */
+  .cell img.drag { pointer-events: auto; -webkit-user-drag: element; cursor: grab; }
   .cell.on img { opacity: 0.38; }
   .mark {
     position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 50%;

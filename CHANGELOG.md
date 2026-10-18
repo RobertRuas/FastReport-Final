@@ -2,6 +2,11 @@
 
 O formato segue, de forma simples, o [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
+## [0.5.2] — 2026-10-18
+
+### Corrigido
+- Entrega: arrastar uma foto para outra app (Word, Pages…) chegava ao destino mas a imagem não carregava. Agora usa o arrasto nativo da própria imagem em tamanho real (a miniatura troca pela foto completa ao passar o rato), que leva os bytes da foto. Deixou de se usar `DownloadURL` com `blob:` e HTML com `data:`.
+
 ## [0.5.1] — 2026-10-18 · Fase 5 (preparação)
 
 ### Corrigido
