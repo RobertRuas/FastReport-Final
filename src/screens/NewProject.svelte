@@ -1,5 +1,5 @@
 <script>
-  import { app, MAPS, createProject, slugify, fileName, toast, nameTaken, mapName } from '../lib/state.svelte.js';
+  import { app, MAPS, createProject, createFolderProject, folderSupported, openProject, slugify, fileName, toast, nameTaken, mapName } from '../lib/state.svelte.js';
   import { t, locale } from '../lib/i18n.svelte.js';
   import Sheet from '../components/Sheet.svelte';
   import NavButton from '../components/NavButton.svelte';
@@ -7,6 +7,9 @@
   const today = new Date().toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' }).replace('/', '-');
   let name = $state('');
   let mapId = $state(MAPS[0].id);
+  const canFolder = folderSupported();
+  let where = $state('app'); // 'app' (IndexedDB) | 'folder' (pasta real no disco)
+  let creating = $state(false);
   let input;
   const slug = $derived(slugify(name));
   const taken = $derived(slug.length > 0 && nameTaken(name));
@@ -17,8 +20,22 @@
     return fileName({ slug: slug || 'Projeto', mapId }, slot, 1);
   });
   const close = () => (app.sheet = null);
-  function create() {
-    if (!valid) return;
+  async function create() {
+    if (!valid || creating) return;
+    if (where === 'folder') {
+      creating = true;
+      try {
+        const p = await createFolderProject(name, mapId);
+        app.sheet = null;
+        setTimeout(() => openProject(p), 150);
+        toast(t('new.created'));
+      } catch (e) {
+        if (e?.name !== 'AbortError') app.alert = { title: t('folder.title'), body: e?.name === 'FolderExists' ? t('folder.exists') : e.message, actions: [{ label: t('app.ok'), style: 'default' }] };
+      } finally {
+        creating = false;
+      }
+      return;
+    }
     const p = createProject(name, mapId);
     app.sheet = null;
     app.tab = 'inbox';
@@ -61,6 +78,22 @@
       {/each}
     </div>
     <div class="foot">{t('new.mapHint')}</div>
+
+    {#if canFolder}
+      <div class="section-title">{t('new.where')}</div>
+      <div class="group">
+        {#each ['app', 'folder'] as w}
+          <button class="row map" onclick={() => (where = w)}>
+            <span class="wi"><Icon name={w === 'app' ? 'shield' : 'folder'} size={22} /></span>
+            <div class="grow">
+              <div>{t(`new.where.${w}`)}</div>
+              <div class="sub">{t(`new.where.${w}.hint`)}</div>
+            </div>
+            {#if where === w}<span class="ck"><Icon name="check" size={22} stroke={2.6} /></span>{/if}
+          </button>
+        {/each}
+      </div>
+    {/if}
   </div>
 </Sheet>
 
@@ -77,4 +110,5 @@
   .map { min-height: 60px; }
   .sub { font-size: 13px; color: var(--label2); margin-top: 2px; }
   .ck { color: var(--accent); }
+  .wi { color: var(--accent); display: grid; }
 </style>

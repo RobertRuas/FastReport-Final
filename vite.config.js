@@ -4,6 +4,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, relative } from 'node:path';
 
+const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+
 function walk(dir) {
   return readdirSync(dir).flatMap((f) => {
     const p = join(dir, f);
@@ -52,6 +54,7 @@ function remScale() {
 export default defineConfig({
   plugins: [remScale(), svelte(), serviceWorker()],
   base: './',
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   server: { host: true, port: 5173 },
   preview: { host: true, port: 4173 }
 });

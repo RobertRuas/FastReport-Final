@@ -1,5 +1,5 @@
 <script>
-  import { app, stats, mapById, mapName, formatBytes, formatDate } from '../lib/state.svelte.js';
+  import { app, stats, mapById, mapName, formatBytes, formatDate, openProject, isFolder } from '../lib/state.svelte.js';
   import { t } from '../lib/i18n.svelte.js';
   import NavBar from '../components/NavBar.svelte';
   import NavButton from '../components/NavButton.svelte';
@@ -7,12 +7,17 @@
   import { fly } from 'svelte/transition';
   import { iosEase } from '../lib/ease.js';
   let scrolled = $state(false);
-  const totalBytes = $derived(app.projects.reduce((a, p) => a + stats(p).bytes, 0));
-  const unexported = $derived(app.projects.filter((p) => !p.exportedAt && p.photos.length).length);
-  function open(p) { app.tab = stats(p).pending ? 'inbox' : 'review'; app.projectId = p.id; }
+  const totalBytes = $derived(app.projects.filter((p) => !isFolder(p)).reduce((a, p) => a + stats(p).bytes, 0));
+  const unexported = $derived(app.projects.filter((p) => !isFolder(p) && !p.exportedAt && p.photos.length).length);
+  let opening = false;
+  async function open(p) {
+    if (opening) return;
+    opening = true;
+    try { await openProject(p); } finally { opening = false; }
+  }
   function covers(p) {
     const trash = mapById(p.mapId).slots.find((s) => s.isTrash)?.id;
-    return p.photos.filter((x) => x.slot !== trash).slice(0, 4);
+    return p.photos.filter((x) => x.slot !== trash && x.thumb).slice(0, 4);
   }
 </script>
 
@@ -55,7 +60,9 @@
               <div class="meta">{mapName(mapById(p.mapId))} · {formatDate(p.createdAt)}</div>
               <div class="meta">{t('home.photos', { n: s.total })}{#if s.pending} · <span class="pend">{t('home.pending', { n: s.pending })}</span>{/if}</div>
               <div class="prog"><span style:width="{s.total ? ((s.total - s.pending) / s.total) * 100 : 0}%"></span></div>
-              {#if p.exportedAt}
+              {#if isFolder(p)}
+                <span class="badge blue"><Icon name="folder" size={12} stroke={2.4} /> {t('home.onDisk')}</span>
+              {:else if p.exportedAt}
                 <span class="badge green"><Icon name="check" size={12} stroke={3} /> {t('home.exported')}</span>
               {:else if s.total}
                 <span class="badge orange">● {t('home.notExported')}</span>

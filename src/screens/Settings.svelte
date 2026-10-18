@@ -1,5 +1,5 @@
 <script>
-  import { app, formatBytes, stats, setCols, setLang, setTheme, setUi, createDemo, colsNow, UI_SIZES, deviceLang } from '../lib/state.svelte.js';
+  import { app, APP_VERSION, formatBytes, stats, setCols, setLang, setTheme, setUi, createDemo, colsNow, UI_SIZES, deviceLang } from '../lib/state.svelte.js';
   import { t } from '../lib/i18n.svelte.js';
   import { offlineCapable } from '../lib/pwa.js';
   import NavBar from '../components/NavBar.svelte';
@@ -86,7 +86,7 @@
     <button class="row tap" onclick={demo}>
       <span class="grow link">{t('settings.demo')}</span><Icon name="photos" size={18} />
     </button>
-    <div class="row"><span class="grow">{t('settings.version')}</span><span class="value">1.5.0</span></div>
+    <div class="row"><span class="grow">{t('settings.version')}</span><span class="value">{APP_VERSION}</span></div>
   </div>
   <div style="height: calc(var(--sab) + 30px)"></div>
 </div>

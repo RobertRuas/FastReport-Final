@@ -1,5 +1,5 @@
 <script>
-  import { app, boot, importZip } from './lib/state.svelte.js';
+  import { app, boot, importZip, closeProject, openFolderProject, folderSupported } from './lib/state.svelte.js';
   import { t } from './lib/i18n.svelte.js';
   import { applyUpdate } from './lib/pwa.js';
   import Home from './screens/Home.svelte';
@@ -26,6 +26,14 @@
     const p = await importZip(f);
     if (p) { app.tab = 'review'; app.projectId = p.id; }
   }
+  async function openFolder() {
+    try {
+      await openFolderProject();
+    } catch (e) {
+      if (e?.name === 'AbortError') return;
+      app.alert = { title: t('folder.title'), body: e.message, actions: [{ label: t('app.ok'), style: 'default' }] };
+    }
+  }
 </script>
 
 {#if !app.ready}
@@ -37,7 +45,7 @@
     <PushScreen onback={() => (app.settingsOpen = false)}><Settings /></PushScreen>
   {/if}
   {#if app.projectId}
-    <PushScreen onback={() => (app.projectId = null)} z={11}><Project /></PushScreen>
+    <PushScreen onback={closeProject} z={11}><Project /></PushScreen>
   {/if}
 
   {#if app.sheet === 'new'}<NewProject />{/if}
@@ -47,6 +55,7 @@
       onclose={() => (app.sheet = null)}
       actions={[
         { label: t('home.new'), run: () => (app.sheet = 'new') },
+        ...(folderSupported() ? [{ label: t('home.openFolder'), run: openFolder }] : []),
         { label: t('home.importZip'), run: () => zipInput.click() }
       ]}
     />

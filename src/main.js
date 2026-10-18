@@ -12,3 +12,8 @@ document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: fals
 registerServiceWorker();
 
 export default mount(App, { target: document.getElementById('app') });
+
+// Só em desenvolvimento: acesso ao estado para testes manuais na consola.
+if (import.meta.env.DEV) {
+  Promise.all([import('./lib/state.svelte.js'), import('./lib/folder.js')]).then(([state, fs]) => (window.__fr = { state, fs }));
+}

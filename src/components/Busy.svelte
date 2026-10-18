@@ -1,5 +1,5 @@
 <script>
-  import { app, IMPORT_PX } from '../lib/state.svelte.js';
+  import { app } from '../lib/state.svelte.js';
   import { t } from '../lib/i18n.svelte.js';
   import { fade } from 'svelte/transition';
   const pct = $derived(app.busy && app.busy.total ? app.busy.done / app.busy.total : 0);
@@ -16,11 +16,13 @@
       <div class="tx">
         {#if app.busy.text === 'zip'}
           {t('zip.importing')}
+        {:else if app.busy.text === 'open'}
+          {t('folder.reading', { d: app.busy.done, t: app.busy.total })}
         {:else}
           {t('project.importing', { d: app.busy.done, t: app.busy.total })}
         {/if}
       </div>
-      {#if app.busy.text === 'import'}<div class="sm">{t('project.converting', { px: IMPORT_PX })}</div>{/if}
+      {#if app.busy.text === 'import'}<div class="sm">{t('project.converting', { px: app.imagePx })}</div>{/if}
     </div>
   </div>
 {/if}

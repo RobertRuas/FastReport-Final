@@ -1,5 +1,5 @@
 <script>
-  import { app, current, stats, photosIn, inboxSlot, importFiles, confirmAlert, deleteProject, toast, mapById, mapName } from '../lib/state.svelte.js';
+  import { app, current, stats, photosIn, inboxSlot, importFiles, confirmAlert, deleteProject, toast, mapById, mapName, isFolder, closeProject } from '../lib/state.svelte.js';
   import { t } from '../lib/i18n.svelte.js';
   import NavBar from '../components/NavBar.svelte';
   import NavButton from '../components/NavButton.svelte';
@@ -31,6 +31,12 @@
     if (files.length) await importFiles(p, files);
   }
   function askDelete() {
+    if (isFolder(p)) {
+      confirmAlert(t('folder.remove.title'), t('folder.remove.body', { name: p.handle?.name ?? p.name }), t('folder.remove'), () => {
+        const id = p.id; closeProject(); setTimeout(() => deleteProject(id), 420); toast(t('folder.removed'));
+      });
+      return;
+    }
     confirmAlert(
       t('project.delete.title'),
       p.exportedAt ? t('project.delete.exported', { n: s.total }) : t('project.delete.notExported', { n: s.total }),
@@ -42,7 +48,7 @@
 
 {#if p}
   <NavBar title={p.name} scrolled={scrolled || app.tab !== 'inbox'}>
-    {#snippet left()}<NavButton icon="back" label={t('app.projects')} onclick={() => (app.projectId = null)} />{/snippet}
+    {#snippet left()}<NavButton icon="back" label={t('app.projects')} onclick={closeProject} />{/snippet}
     {#snippet right()}
       <NavButton icon="share" onclick={() => (app.sheet = 'export')} disabled={!s.total} />
       <NavButton icon="more" onclick={() => (app.sheet = 'menu')} />
@@ -136,7 +142,7 @@
       actions={[
         { label: t('project.menu.export'), run: () => (app.sheet = 'export') },
         { label: t('project.menu.import'), run: () => (importMenu = true) },
-        { label: t('project.menu.delete'), destructive: true, run: askDelete }
+        { label: isFolder(p) ? t('folder.remove') : t('project.menu.delete'), destructive: true, run: askDelete }
       ]}
     />
   {/if}

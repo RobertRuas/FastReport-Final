@@ -171,7 +171,26 @@ const PT = {
 
   'slot.inbox': 'Sem categoria',
   'slot.trash': 'Lixeira',
-  'slot.general': 'Geral'
+  'slot.general': 'Geral',
+  'folder.title': "Pasta no disco",
+  'folder.noPermission': "Sem acesso à pasta. Volta a abrir o projeto e permite o acesso.",
+  'folder.error': "Não foi possível gravar na pasta. A ler o disco outra vez.",
+  'folder.notProject': "Esta pasta não é um projeto do FastReport (falta o fastreport.json).",
+  'folder.missing': "A pasta deste projeto já não existe ou foi movida. Usa “Abrir pasta de projeto” para a voltar a ligar.",
+  'folder.synced': "Atualizado com as mudanças do Finder",
+  'folder.reading': "A ler a pasta… {d} de {t}",
+  'folder.remove': "Remover da lista",
+  'folder.remove.title': "Remover projeto da lista?",
+  'folder.remove.body': "A pasta “{name}” e as fotos ficam no disco, intactas. Podes voltar a abri-la quando quiseres.",
+  'folder.removed': "Removido da lista",
+  'folder.exists': "Já existe uma pasta com este nome nesse local.",
+  'home.openFolder': "Abrir pasta de projeto",
+  'home.onDisk': "Pasta no disco",
+  'new.where': "Onde guardar",
+  'new.where.app': "Nesta app",
+  'new.where.app.hint': "Fotos guardadas no browser. Saem por ZIP.",
+  'new.where.folder': "Numa pasta do disco",
+  'new.where.folder.hint': "Pastas e ficheiros reais, como no FastReport do Mac. Vês tudo no Finder."
 };
 
 const EN = {
@@ -343,7 +362,26 @@ const EN = {
 
   'slot.inbox': 'Unsorted',
   'slot.trash': 'Trash',
-  'slot.general': 'General'
+  'slot.general': 'General',
+  'folder.title': "Folder on disk",
+  'folder.noPermission': "No access to the folder. Open the project again and allow access.",
+  'folder.error': "Couldn't write to the folder. Reading the disk again.",
+  'folder.notProject': "This folder isn't a FastReport project (fastreport.json is missing).",
+  'folder.missing': "This project's folder no longer exists or was moved. Use “Open project folder” to link it again.",
+  'folder.synced': "Updated with changes from Finder",
+  'folder.reading': "Reading folder… {d} of {t}",
+  'folder.remove': "Remove from list",
+  'folder.remove.title': "Remove project from list?",
+  'folder.remove.body': "The “{name}” folder and its photos stay on disk, untouched. You can open it again any time.",
+  'folder.removed': "Removed from list",
+  'folder.exists': "A folder with this name already exists there.",
+  'home.openFolder': "Open project folder",
+  'home.onDisk': "Folder on disk",
+  'new.where': "Where to save",
+  'new.where.app': "In this app",
+  'new.where.app.hint': "Photos kept in the browser. Export as ZIP.",
+  'new.where.folder': "In a folder on disk",
+  'new.where.folder.hint': "Real folders and files, like FastReport for Mac. Everything shows in Finder."
 };
 
 const DICTS = { pt: PT, en: EN };

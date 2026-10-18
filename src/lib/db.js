@@ -1,7 +1,7 @@
 // Armazenamento local (IndexedDB). Projetos = metadados pequenos; fotos = blobs JPEG.
 
 const DB_NAME = 'fastreport';
-const VERSION = 1;
+const VERSION = 2;
 let dbp;
 
 function open() {
@@ -15,6 +15,8 @@ function open() {
         s.createIndex('projectId', 'projectId');
       }
       if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings');
+      // v2: miniaturas das fotos em pastas do disco (chave: projeto|tamanho|data do ficheiro).
+      if (!db.objectStoreNames.contains('thumbs')) db.createObjectStore('thumbs');
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -92,5 +94,25 @@ export async function putSetting(key, value) {
   const db = await open();
   const tx = db.transaction('settings', 'readwrite');
   tx.objectStore('settings').put(value, key);
+  await done(tx);
+}
+
+export async function getThumb(key) {
+  const db = await open();
+  return result(db.transaction('thumbs').objectStore('thumbs').get(key));
+}
+
+export async function putThumb(key, value) {
+  const db = await open();
+  const tx = db.transaction('thumbs', 'readwrite');
+  tx.objectStore('thumbs').put(value, key);
+  await done(tx);
+}
+
+/** Apaga as miniaturas de um projeto em pasta (chaves começam por "<id>|"). */
+export async function deleteThumbs(projectId) {
+  const db = await open();
+  const tx = db.transaction('thumbs', 'readwrite');
+  tx.objectStore('thumbs').delete(IDBKeyRange.bound(`${projectId}|`, `${projectId}|\uffff`));
   await done(tx);
 }
