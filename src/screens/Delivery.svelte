@@ -23,16 +23,24 @@
   // O Chrome entrega assim os bytes da foto à outra app (como ao arrastar uma imagem de um site).
   // Um "DownloadURL" com blob: ou HTML com data: chegavam ao destino mas a imagem não carregava.
   // A miniatura troca pela foto completa quando o rato passa por cima, antes do arrasto começar.
-  // A foto vai como data: (bytes dentro do próprio endereço) e não como blob:, que só existe nesta página
-  // e que o Safari e outras apps não conseguem abrir.
-  let hot = $state({}); // id → data URL
+  // A foto arrastada precisa de um endereço que as outras apps consigam abrir.
+  // Com o service worker ativo (app publicada) fica num endereço https real, com o nome final
+  // (…/__drag/<id>/<nome>.jpeg), como uma imagem de qualquer site. Sem ele, vai como data:.
+  let hot = $state({}); // id → endereço da foto completa
   const pending = new Set();
-  async function warm(ph) {
+  async function warm(ph, slot, i) {
     if (hot[ph.id] || pending.has(ph.id)) return;
     pending.add(ph.id);
     try {
       const blob = await photoBlob(project, ph);
-      const url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+      let url;
+      if (navigator.serviceWorker?.controller && 'caches' in window) {
+        url = new URL(`./__drag/${ph.id}/${encodeURIComponent(nameOf(slot, ph, i))}`, location.href).href;
+        const cache = await caches.open('fr-drag');
+        await cache.put(url, new Response(blob, { headers: { 'Content-Type': 'image/jpeg', 'Content-Length': String(blob.size) } }));
+      } else {
+        url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+      }
       hot = { ...hot, [ph.id]: url };
     } catch (e) {
       console.warn('drag', e);
@@ -40,6 +48,8 @@
       pending.delete(ph.id);
     }
   }
+  // Limpa as fotos preparadas ao sair da Entrega.
+  $effect(() => () => { if ('caches' in window) caches.delete('fr-drag').catch(() => {}); });
 
   function dragend(e, ph) {
     // O destino aceitou a foto (copy): fica marcada como colocada.
@@ -110,8 +120,8 @@
                   class="thumb cell"
                   class:on
                   title={nameOf(slot, ph, i)}
-                  onpointerenter={() => warm(ph)}
-                  onpointerdown={() => warm(ph)}
+                  onpointerenter={() => warm(ph, slot, i)}
+                  onpointerdown={() => warm(ph, slot, i)}
                   ondragend={(e) => dragend(e, ph)}
                   onclick={() => open(slot, i)}
                   oncontextmenu={(e) => context(e, slot, ph, i)}

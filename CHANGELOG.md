@@ -2,6 +2,11 @@
 
 O formato segue, de forma simples, o [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
+## [0.5.4] — 2026-10-18
+
+### Alterado
+- Entrega: com a app publicada, a foto arrastada fica num endereço https real servido pelo service worker (`…/__drag/<id>/<nome final>.jpeg`), como uma imagem de qualquer site. Sem service worker continua a ir como `data:`.
+
 ## [0.5.3] — 2026-10-18
 
 ### Alterado

@@ -1,6 +1,7 @@
 // Service worker: guarda a app inteira para funcionar sem rede.
 const CACHE = 'fastreport-__VERSION__';
 const ASSETS = __ASSETS__;
+const DRAG = 'fr-drag';
 
 // cache: 'reload' ignora a cache HTTP do GitHub Pages (10 min). Sem isto, a versão nova
 // podia guardar o index.html antigo, que aponta para ficheiros que já não existem: ecrã branco.
@@ -27,6 +28,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  // Fotos preparadas pela Entrega para arrastar: um endereço https real com o nome final do ficheiro.
+  if (new URL(req.url).pathname.includes('/__drag/')) {
+    event.respondWith(caches.open(DRAG).then((c) => c.match(req)).then((r) => r || new Response('', { status: 404 })));
+    return;
+  }
   if (req.mode === 'navigate') {
     event.respondWith(caches.match('./index.html', { cacheName: CACHE }).then((r) => r || fetch(req)));
     return;
