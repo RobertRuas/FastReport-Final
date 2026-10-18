@@ -2,6 +2,11 @@
 
 O formato segue, de forma simples, o [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
+## [0.5.3] — 2026-10-18
+
+### Alterado
+- Entrega: a imagem arrastada usa um endereço `data:` (com os bytes da foto) em vez de `blob:`, para o Safari e outras apps conseguirem ler a foto.
+
 ## [0.5.2] — 2026-10-18
 
 ### Corrigido

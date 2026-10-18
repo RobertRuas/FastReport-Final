@@ -23,8 +23,23 @@
   // O Chrome entrega assim os bytes da foto à outra app (como ao arrastar uma imagem de um site).
   // Um "DownloadURL" com blob: ou HTML com data: chegavam ao destino mas a imagem não carregava.
   // A miniatura troca pela foto completa quando o rato passa por cima, antes do arrasto começar.
-  let hot = $state(new Set());
-  function warm(ph) { if (!hot.has(ph.id)) hot = new Set(hot).add(ph.id); }
+  // A foto vai como data: (bytes dentro do próprio endereço) e não como blob:, que só existe nesta página
+  // e que o Safari e outras apps não conseguem abrir.
+  let hot = $state({}); // id → data URL
+  const pending = new Set();
+  async function warm(ph) {
+    if (hot[ph.id] || pending.has(ph.id)) return;
+    pending.add(ph.id);
+    try {
+      const blob = await photoBlob(project, ph);
+      const url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+      hot = { ...hot, [ph.id]: url };
+    } catch (e) {
+      console.warn('drag', e);
+    } finally {
+      pending.delete(ph.id);
+    }
+  }
 
   function dragend(e, ph) {
     // O destino aceitou a foto (copy): fica marcada como colocada.
@@ -104,7 +119,7 @@
                   tabindex="0"
                   onkeydown={(e) => { if (e.key === 'Enter') open(slot, i); if (e.key === ' ') { e.preventDefault(); setPlaced(project, ph); } }}
                 >
-                  <img class="drag" src={hot.has(ph.id) ? ph.full : ph.thumb} alt={nameOf(slot, ph, i)} loading="lazy" decoding="async" draggable="true" />
+                  <img class="drag" src={hot[ph.id] ?? ph.thumb} alt={nameOf(slot, ph, i)} loading="lazy" decoding="async" draggable="true" />
                   <button class="mark" class:on aria-label={on ? t('delivery.unmark') : t('delivery.mark')} onclick={(e) => { e.stopPropagation(); setPlaced(project, ph); }}>
                     <Icon name="check" size={13} stroke={3.2} />
                   </button>
