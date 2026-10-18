@@ -1,5 +1,5 @@
 <script>
-  import { app, current, mapById, photosIn, slotLabel, fileName, movePhoto, editPhoto, toast, orderedSlots } from '../lib/state.svelte.js';
+  import { app, current, mapById, photosIn, slotLabel, fileName, movePhoto, editPhoto, toast, orderedSlots, isFolder } from '../lib/state.svelte.js';
   import Icon from '../components/Icon.svelte';
   import { fade, scale as zoom } from 'svelte/transition';
   import { iosEase } from '../lib/ease.js';
@@ -12,7 +12,7 @@
   const list = $derived(photosIn(project, slot.id));
   const index = $derived(Math.min(app.viewer.index, list.length - 1));
   const photo = $derived(list[index]);
-  const name = $derived(slot.isInbox || slot.isTrash ? t('viewer.noName') : fileName(project, slot, index + 1));
+  const name = $derived(isFolder(project) ? photo?.name ?? '' : slot.isInbox || slot.isTrash ? t('viewer.noName') : fileName(project, slot, index + 1));
 
   let scale = $state(1), tx = $state(0), ty = $state(0), sw = $state(0), sy = $state(0);
   let smooth = $state(false);

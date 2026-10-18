@@ -251,7 +251,19 @@ const PT = {
   'settings.image.quality.medium': "Média (70%)",
   'settings.imagesHint': "Aplica-se às fotos que importares a partir de agora e às que rodares, inverteres ou cortares. 1024 px chega para relatórios; mais é útil para ver detalhe.",
   'settings.no.desktop': "Não (separador do browser)",
-  'settings.storageHint.desktop': "Os projetos “Nesta app” ficam guardados no browser até os apagares; exporta o ZIP para os levar. Os projetos em pasta vivem no disco e não contam aqui."
+  'settings.storageHint.desktop': "Os projetos “Nesta app” ficam guardados no browser até os apagares; exporta o ZIP para os levar. Os projetos em pasta vivem no disco e não contam aqui.",
+  'dupes.found': "Atenção: {n} fotos parecem repetidas (marcadas com 2×)",
+  'dupes.found1': "Atenção: 1 foto parece repetida (marcada com 2×)",
+  'dupes.badge': "Possível foto repetida",
+  'csv.button': "Exportar contagens (CSV)",
+  'csv.saved': "Contagens descarregadas",
+  'csv.folder': "Pasta",
+  'csv.photos': "Fotos",
+  'csv.expected': "Esperadas",
+  'project.pinchHint.desktop': "⌘+ / ⌘− ou pinça no trackpad mudam o tamanho das miniaturas.",
+  'review.restore': "Voltar para Sem categoria",
+  'review.copyPath': "Copiar caminho",
+  'review.pathCopied': "Caminho copiado"
 };
 
 const EN = {
@@ -503,7 +515,19 @@ const EN = {
   'settings.image.quality.medium': "Medium (70%)",
   'settings.imagesHint': "Applies to photos you import from now on and to those you rotate, flip or crop. 1024 px is enough for reports; more helps with detail.",
   'settings.no.desktop': "No (browser tab)",
-  'settings.storageHint.desktop': "“In this app” projects stay in the browser until you delete them; export the ZIP to take them elsewhere. Folder projects live on disk and don't count here."
+  'settings.storageHint.desktop': "“In this app” projects stay in the browser until you delete them; export the ZIP to take them elsewhere. Folder projects live on disk and don't count here.",
+  'dupes.found': "Heads up: {n} photos look repeated (marked 2×)",
+  'dupes.found1': "Heads up: 1 photo looks repeated (marked 2×)",
+  'dupes.badge': "Possibly a repeated photo",
+  'csv.button': "Export counts (CSV)",
+  'csv.saved': "Counts downloaded",
+  'csv.folder': "Folder",
+  'csv.photos': "Photos",
+  'csv.expected': "Expected",
+  'project.pinchHint.desktop': "⌘+ / ⌘− or trackpad pinch change the thumbnail size.",
+  'review.restore': "Back to Unsorted",
+  'review.copyPath': "Copy path",
+  'review.pathCopied': "Path copied"
 };
 
 const DICTS = { pt: PT, en: EN };

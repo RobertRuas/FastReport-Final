@@ -1,5 +1,5 @@
 <script>
-  import { app, current, stats, exportPlan, buildZip, setZipLayout, markExported, formatBytes, formatTime, confirmAlert, deleteProject, toast } from '../lib/state.svelte.js';
+  import { app, current, stats, exportPlan, buildZip, setZipLayout, markExported, countsFile, isFolder, formatBytes, formatTime, confirmAlert, deleteProject, toast } from '../lib/state.svelte.js';
   import { t } from '../lib/i18n.svelte.js';
   import Sheet from '../components/Sheet.svelte';
   import NavButton from '../components/NavButton.svelte';
@@ -64,6 +64,19 @@
     toast(t('export.downloaded'));
   }
 
+  function saveCounts() {
+    const f = countsFile(p);
+    const url = URL.createObjectURL(f);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = f.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    toast(t('csv.saved'));
+  }
+
   function remove() {
     confirmAlert(t('export.delete.title'), t('export.delete.body', { n: s.total }), t('app.delete'), () => {
       const id = p.id;
@@ -115,11 +128,13 @@
     {:else}
       <div class="ok"><Icon name="check" size={22} stroke={3} /> {t('export.done', { time: formatTime(p.exportedAt) })}</div>
       <button class="btn secondary full" onclick={build}>{t('export.again')}</button>
-      <button class="btn danger full" onclick={remove}><Icon name="trash" size={20} /> {t('export.deleteFromPhone')}</button>
-      <div class="note">{t('export.deleteHint')}</div>
+      {#if !isFolder(p)}
+        <button class="btn danger full" onclick={remove}><Icon name="trash" size={20} /> {t('export.deleteFromPhone')}</button>
+        <div class="note">{t('export.deleteHint')}</div>
+      {/if}
     {/if}
 
-    <div class="section-title">{t('export.contents')}</div>
+    <div class="section-title row-title">{t('export.contents')}<button class="csv tap" onclick={saveCounts}>{t('csv.button')}</button></div>
     <div class="group">
       {#if flat}
         <div class="row"><span class="grow mono">{p.name}/</span><span class="value">{count}</span></div>
@@ -157,5 +172,7 @@
   .pulse { animation: pulse 1.6s ease-in-out 2; }
   @keyframes pulse { 50% { transform: scale(1.025); } }
   .ok { display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--green); font-weight: 600; margin: 4px 0 14px; }
+  .row-title { display: flex; align-items: baseline; justify-content: space-between; padding-right: 20px; }
+  .csv { color: var(--accent); font-size: 13px; text-transform: none; font-weight: 600; }
   .mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 14px; }
 </style>

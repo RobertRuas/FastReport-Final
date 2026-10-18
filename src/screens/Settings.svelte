@@ -23,6 +23,7 @@
   {#snippet left()}<NavButton icon="back" label={t('app.projects')} onclick={() => (app.settingsOpen = false)} />{/snippet}
 </NavBar>
 <div class="scroll">
+<div class="col">
   <div class="section-title">{t('settings.theme')}</div>
   <div class="group">
     {#each themes as th}
@@ -113,8 +114,10 @@
   </div>
   <div style="height: calc(var(--sab) + 30px)"></div>
 </div>
+</div>
 
 <style>
+  .col { max-width: 760px; margin: 0 auto; }
   .foot { font-size: 13px; color: var(--label2); padding: 7px 20px 0; line-height: 1.35; }
   .on { color: var(--green); display: inline-flex; align-items: center; gap: 4px; }
   .ck { color: var(--accent); display: grid; animation: pop 0.25s var(--ease); }

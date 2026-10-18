@@ -105,3 +105,28 @@ describe('versões', () => {
     expect(compareVersions('0.1.9', '0.2')).toBe(-1);
   });
 });
+
+import { countsCsv, duplicateIds } from '../src/lib/rules.js';
+
+describe('resumo de contagens (CSV)', () => {
+  it('usa ";" e escapa aspas e separadores', () => {
+    const csv = countsCsv([['T1', 3, 7], ['C12 · T01', 'a;b', '']], ['Pasta', 'Fotos', 'Esperadas']);
+    expect(csv.startsWith('﻿')).toBe(true);
+    expect(csv).toContain('Pasta;Fotos;Esperadas\r\n');
+    expect(csv).toContain('T1;3;7\r\n');
+    expect(csv).toContain('C12 · T01;"a;b";\r\n');
+  });
+});
+
+describe('fotos repetidas', () => {
+  it('encontra o mesmo conteúdo e ignora a lixeira', () => {
+    const photos = [
+      { id: 'a', hash: 'x', slot: 'inbox' },
+      { id: 'b', hash: 'x', slot: 't1' },
+      { id: 'c', hash: 'y', slot: 'inbox' },
+      { id: 'd', hash: 'y', slot: 'trash' },
+      { id: 'e', slot: 'inbox' }
+    ];
+    expect([...duplicateIds(photos, 'trash')].sort()).toEqual(['a', 'b']);
+  });
+});

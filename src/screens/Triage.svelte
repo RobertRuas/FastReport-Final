@@ -1,5 +1,5 @@
 <script>
-  import { app, current, mapById, photosIn, slotLabel, groupsOf, movePhoto, undo, editPhoto, toast } from '../lib/state.svelte.js';
+  import { app, current, mapById, photosIn, slotLabel, groupsOf, movePhoto, undo, editPhoto, toast, dupes } from '../lib/state.svelte.js';
   import Icon from '../components/Icon.svelte';
   import CropOverlay from '../components/CropOverlay.svelte';
   import { iosEase } from '../lib/ease.js';
@@ -184,7 +184,7 @@
     <button class="ib" onclick={close} aria-label={t('triage.close')}><Icon name="close" size={22} stroke={2.4} /></button>
     <div class="mid">
       <div class="pos">{list.length ? `${index + 1} / ${list.length}` : '0'}</div>
-      <div class="sub">{#if preview}<span class="buf" class:bad={!keyTarget}>→ {preview}</span>{:else}{t('slot.inbox')}{/if}</div>
+      <div class="sub">{#if photo && dupes(project).has(photo.id) && !preview}<span class="buf">{t('dupes.badge')}</span>{:else if preview}<span class="buf" class:bad={!keyTarget}>→ {preview}</span>{:else}{t('slot.inbox')}{/if}</div>
     </div>
     <button class="ib" onclick={doUndo} disabled={!project.undo.length} aria-label="undo"><Icon name="undo" size={22} /></button>
   </header>

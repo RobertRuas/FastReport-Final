@@ -2,6 +2,18 @@
 
 O formato segue, de forma simples, o [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
+## [0.5.0] — 2026-10-18 · Fase 4
+
+### Adicionado
+- Revisão em ecrã largo com índice de pastas (contagem `n/esperado`) e menu de contexto nas fotos: abrir, rodar, inverter, mandar para a Lixeira / voltar para Sem categoria, copiar caminho (modo pasta).
+- Aviso de fotos repetidas (mesmo JPEG): marca "2×" na grelha e na triagem, aviso ao importar.
+- Exportar contagens por pasta em CSV (separador `;`, abre direto no Excel em português).
+- Menu de contexto partilhado (Revisão e Entrega).
+
+### Alterado
+- Manifesto: `display: standalone`, para a app instalada no computador abrir numa janela normal.
+- Definições centradas no ecrã largo; nome real do ficheiro no visualizador (modo pasta); hover e foco visível para rato e teclado.
+
 ## [0.4.0] — 2026-10-18 · Fase 3
 
 ### Adicionado

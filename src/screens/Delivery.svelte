@@ -5,7 +5,7 @@
   import { t } from '../lib/i18n.svelte.js';
   import PinchGrid from '../components/PinchGrid.svelte';
   import Icon from '../components/Icon.svelte';
-  import { fade } from 'svelte/transition';
+  import ContextMenu from '../components/ContextMenu.svelte';
 
   let { project } = $props();
   const map = $derived(mapById(project.mapId));
@@ -76,14 +76,12 @@
   function open(slot, i) { app.viewer = { slotId: slot.id, index: i }; }
   function context(e, slot, ph, i) {
     e.preventDefault();
-    menu = { x: Math.min(e.clientX, innerWidth - 240), y: Math.min(e.clientY, innerHeight - 170), slot, ph, i };
+    menu = { x: e.clientX, y: e.clientY, slot, ph, i };
   }
   function reset() {
     confirmAlert(t('delivery.reset.title'), t('delivery.reset.body'), t('delivery.reset'), () => resetPlaced(project));
   }
 </script>
-
-<svelte:window onkeydown={(e) => e.key === 'Escape' && menu && (menu = null)} />
 
 <div class="wrap">
   <div class="banner">
@@ -142,14 +140,11 @@
 </div>
 
 {#if menu}
-  <div class="cm-scrim" onclick={() => (menu = null)} oncontextmenu={(e) => { e.preventDefault(); menu = null; }} role="presentation"></div>
-  <div class="cm" style:left="{menu.x}px" style:top="{menu.y}px" transition:fade={{ duration: 100 }}>
-    <button onclick={() => { setPlaced(project, menu.ph); menu = null; }}>
-      <Icon name="check" size={16} /> {isPlaced(project, menu.ph) ? t('delivery.unmark') : t('delivery.mark')}
-    </button>
-    <button onclick={() => { copy(menu.ph); menu = null; }}><Icon name="copy" size={16} /> {t('delivery.copy')}</button>
-    <button onclick={() => { open(menu.slot, menu.i); menu = null; }}><Icon name="image" size={16} /> {t('delivery.open')}</button>
-  </div>
+  <ContextMenu x={menu.x} y={menu.y} onclose={() => (menu = null)} items={[
+    { icon: 'check', label: isPlaced(project, menu.ph) ? t('delivery.unmark') : t('delivery.mark'), key: '␣', run: ((ph) => () => setPlaced(project, ph))(menu.ph) },
+    { icon: 'copy', label: t('delivery.copy'), run: ((ph) => () => copy(ph))(menu.ph) },
+    { icon: 'image', label: t('delivery.open'), key: '↵', run: ((sl, i) => () => open(sl, i))(menu.slot, menu.i) }
+  ]} />
 {/if}
 
 <style>
@@ -186,13 +181,4 @@
   .empty { display: grid; justify-items: center; gap: 10px; padding: 64px 28px; text-align: center; color: var(--label2); }
   .ei { color: var(--label3); }
   .foot { font-size: 12px; color: var(--label3); text-align: center; padding: 16px 24px 28px; }
-  .cm-scrim { position: fixed; inset: 0; z-index: 880; }
-  .cm {
-    position: fixed; z-index: 881; min-width: 220px; padding: 5px;
-    border-radius: 10px; background: color-mix(in srgb, var(--bg2) 94%, transparent);
-    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
-    box-shadow: var(--shadow); border: 0.5px solid var(--sep);
-  }
-  .cm button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border-radius: 6px; font-size: 14px; text-align: left; }
-  .cm button:hover { background: var(--accent); color: #fff; }
 </style>

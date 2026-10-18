@@ -1,5 +1,5 @@
 <script>
-  import { app, current, stats, photosIn, inboxSlot, importFiles, confirmAlert, deleteProject, toast, mapById, mapName, isFolder, closeProject } from '../lib/state.svelte.js';
+  import { app, current, stats, photosIn, inboxSlot, importFiles, confirmAlert, deleteProject, toast, mapById, mapName, isFolder, closeProject, dupes } from '../lib/state.svelte.js';
   import { t } from '../lib/i18n.svelte.js';
   import NavBar from '../components/NavBar.svelte';
   import NavButton from '../components/NavButton.svelte';
@@ -13,6 +13,7 @@
   const p = $derived(current());
   const s = $derived(p ? stats(p) : null);
   const inbox = $derived(p ? photosIn(p, inboxSlot(p).id) : []);
+  const dup = $derived(p ? dupes(p) : new Set());
   let scrolled = $state(false);
   let importMenu = $state(false);
   let libInput = $state(), camInput = $state();
@@ -127,7 +128,7 @@
             <PinchGrid>
               <div class="grid">
                 {#each inbox as ph, i (ph.id)}
-                  <button class="thumb" onclick={() => startTriage(i)}><img src={ph.thumb} alt="" loading="lazy" decoding="async" /></button>
+                  <button class="thumb" onclick={() => startTriage(i)}><img src={ph.thumb} alt="" loading="lazy" decoding="async" />{#if dup.has(ph.id)}<span class="dup" title={t('dupes.badge')}>2×</span>{/if}</button>
                 {/each}
               </div>
             </PinchGrid>
@@ -220,6 +221,7 @@
   .sub { font-size: 13px; color: var(--label2); margin-top: 4px; }
   .actions { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; margin-top: 16px; }
   .actions.hide { display: none; }
+  .dup { position: absolute; left: 4px; bottom: 4px; padding: 1px 5px; border-radius: 5px; background: var(--orange); color: #fff; font-size: 10px; font-weight: 700; }
   .hint { text-align: center; font-size: 12px; color: var(--label3); padding: 14px 24px 0; }
   .empty { display: grid; gap: 10px; padding: 64px 28px 20px; text-align: center; }
   .ei { color: var(--label3); }

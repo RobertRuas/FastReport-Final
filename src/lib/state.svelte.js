@@ -96,7 +96,7 @@ function record(p) {
     kind: p.kind ?? 'internal',
     handle: p.handle ?? null,
     placed: isFolder(p) ? [] : [...(p.placed ?? [])],
-    photos: p.photos.map((x) => ({ id: x.id, slot: x.slot, w: x.w, h: x.h, bytes: x.bytes, ...(isFolder(p) ? { name: x.name } : {}) }))
+    photos: p.photos.map((x) => ({ id: x.id, slot: x.slot, w: x.w, h: x.h, bytes: x.bytes, hash: x.hash, ...(isFolder(p) ? { name: x.name } : {}) }))
   };
 }
 
@@ -403,14 +403,15 @@ const thumbKey = (p, file) => `${p.id}|${file.size}|${file.lastModified}`;
 async function thumbFor(p, file) {
   const key = thumbKey(p, file);
   const hit = await db.getThumb(key).catch(() => null);
-  if (hit) return hit;
+  if (hit?.hash) return hit;
+  if (hit) { hit.hash = await hashOf(file); db.putThumb(key, hit).catch(() => {}); return hit; }
   const bmp = await decode(file, file.name);
   const w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight;
   const c = drawScaled(bmp, 256);
   bmp.close?.();
   const thumb = await toBlob(c, 0.75);
   c.width = c.height = 0;
-  const rec = { thumb, w, h };
+  const rec = { thumb, w, h, hash: await hashOf(file) };
   db.putThumb(key, rec).catch(() => {});
   return rec;
 }
@@ -441,6 +442,7 @@ async function reload(p, quiet = false, first = false) {
           disk: it.path,
           bytes: it.file.size,
           _mod: it.file.lastModified,
+          hash: same ? old.hash : th.hash,
           w: same ? old.w : th.w,
           h: same ? old.h : th.h,
           full: URL.createObjectURL(it.file),
@@ -600,6 +602,7 @@ export function undo(project) {
     } else {
       Object.assign(photo, { full, thumb, w, h, bytes });
       storePhoto(project.id, photo.id, blobs.full, blobs.thumb);
+      hashOf(blobs.full).then((hash) => (photo.hash = hash));
     }
     touched(project);
   }
@@ -647,6 +650,21 @@ export function resetPlaced(project) {
 }
 
 // ---------- Imagens ----------
+
+/** Impressão digital do JPEG (para avisar de fotos repetidas, como pedido no PLANO do Mac). */
+async function hashOf(blob) {
+  try {
+    const d = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+    return [...new Uint8Array(d).slice(0, 8)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return null;
+  }
+}
+
+/** Fotos repetidas no projeto (mesmo conteúdo), fora da lixeira. */
+export function dupes(project) {
+  return rules.duplicateIds(project.photos, trashSlot(project)?.id);
+}
 
 const toBlob = (canvas, q) => new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('toBlob'))), 'image/jpeg', q));
 
@@ -708,8 +726,9 @@ async function afterWrite(project, photo, thumb, w, h) {
   const file = await fs.readFile(project.handle, photo.disk);
   if (photo.full) URL.revokeObjectURL(photo.full);
   if (photo.thumb) URL.revokeObjectURL(photo.thumb);
-  Object.assign(photo, { full: URL.createObjectURL(file), thumb: URL.createObjectURL(thumb), w, h, bytes: file.size, _mod: file.lastModified });
-  db.putThumb(thumbKey(project, file), { thumb, w, h }).catch(() => {});
+  const hash = await hashOf(file);
+  Object.assign(photo, { full: URL.createObjectURL(file), thumb: URL.createObjectURL(thumb), w, h, bytes: file.size, _mod: file.lastModified, hash });
+  db.putThumb(thumbKey(project, file), { thumb, w, h, hash }).catch(() => {});
   sigs.set(project.id, await fs.signature(project.handle, mapById(project.mapId)));
 }
 
@@ -751,7 +770,7 @@ export async function editPhoto(project, photo, kind, crop) {
       await afterWrite(project, photo, out.thumb, out.w, out.h);
     } else {
       await storePhoto(project.id, photo.id, out.full, out.thumb);
-      Object.assign(photo, urls(out.full, out.thumb), { w: out.w, h: out.h, bytes: out.bytes });
+      Object.assign(photo, urls(out.full, out.thumb), { w: out.w, h: out.h, bytes: out.bytes, hash: await hashOf(out.full) });
     }
     touched(project);
   };
@@ -769,7 +788,8 @@ export async function importFiles(project, files) {
   if (!list.length) return;
   const inbox = inboxSlot(project);
   app.busy = { text: 'import', done: 0, total: list.length };
-  let failed = 0;
+  let failed = 0, repeated = 0;
+  const known = new Set(project.photos.filter((x) => x.slot !== trashSlot(project)?.id).map((x) => x.hash).filter(Boolean));
   const work = async () => {
     for (const file of list) {
       try {
@@ -779,17 +799,20 @@ export async function importFiles(project, files) {
         const out = await encode(c);
         c.width = c.height = 0;
         const id = newId('f');
+        const hash = await hashOf(out.full);
+        if (hash && known.has(hash)) repeated++;
+        if (hash) known.add(hash);
         if (isFolder(project)) {
           const names = photosIn(project, inbox.id).map((x) => x.name);
           const name = rules.uniqueJpegName(file.name || 'photo', names);
           const disk = `${slotPath(inbox)}/${name}`;
           await fs.writeFile(project.handle, disk, out.full);
           const saved = await fs.readFile(project.handle, disk);
-          db.putThumb(thumbKey(project, saved), { thumb: out.thumb, w: out.w, h: out.h }).catch(() => {});
-          project.photos.push({ id, slot: inbox.id, name, disk, w: out.w, h: out.h, bytes: saved.size, _mod: saved.lastModified, full: URL.createObjectURL(saved), thumb: URL.createObjectURL(out.thumb) });
+          db.putThumb(thumbKey(project, saved), { thumb: out.thumb, w: out.w, h: out.h, hash }).catch(() => {});
+          project.photos.push({ id, hash, slot: inbox.id, name, disk, w: out.w, h: out.h, bytes: saved.size, _mod: saved.lastModified, full: URL.createObjectURL(saved), thumb: URL.createObjectURL(out.thumb) });
         } else {
           await storePhoto(project.id, id, out.full, out.thumb);
-          project.photos.push({ id, slot: inbox.id, w: out.w, h: out.h, bytes: out.bytes, ...urls(out.full, out.thumb) });
+          project.photos.push({ id, hash, slot: inbox.id, w: out.w, h: out.h, bytes: out.bytes, ...urls(out.full, out.thumb) });
         }
         if (app.busy.done % 10 === 9) save(project);
       } catch (e) {
@@ -809,6 +832,7 @@ export async function importFiles(project, files) {
   const ok = list.length - failed;
   if (ok) toast(ok === 1 ? t('project.imported1') : t('project.imported', { n: ok }));
   if (failed) setTimeout(() => toast(t('project.importFailed', { n: failed })), 1900);
+  if (repeated) setTimeout(() => toast(repeated === 1 ? t('dupes.found1') : t('dupes.found', { n: repeated }), 'accent'), failed ? 3800 : 1900);
 }
 
 // ---------- Exportar ZIP (mesma estrutura de pastas do Mac) ----------
@@ -869,6 +893,18 @@ export async function buildZip(project, onProgress, layout = 'folders') {
   return new File([blob], `${project.slug}${flat ? '_fotos' : ''}.zip`, { type: 'application/zip' });
 }
 
+/** Resumo de contagens por pasta (CSV), para o relatório. */
+export function countsFile(project) {
+  const map = mapById(project.mapId);
+  const rows = orderedSlots(map)
+    .filter((s) => !s.isInbox && !s.isTrash)
+    .map((s) => [s.group ? `${s.group} / ${s.folder}` : slotLabel(s), photosIn(project, s.id).length, s.expectedCount ?? '']);
+  const inbox = photosIn(project, inboxSlot(project).id).length;
+  if (inbox) rows.push([t('slot.inbox'), inbox, '']);
+  const csv = rules.countsCsv(rows, [t('csv.folder'), t('csv.photos'), t('csv.expected')]);
+  return new File([csv], `${project.slug}_contagens.csv`, { type: 'text/csv;charset=utf-8' });
+}
+
 export function markExported(project) {
   project.exportedAt = new Date().toISOString();
   save(project, true);
@@ -917,7 +953,7 @@ export async function importZip(file) {
         c.width = c.height = 0;
         const id = newId('f');
         await storePhoto(p.id, id, out.full, out.thumb);
-        p.photos.push({ id, slot: slot.id, w: out.w, h: out.h, bytes: out.bytes, ...urls(out.full, out.thumb) });
+        p.photos.push({ id, slot: slot.id, w: out.w, h: out.h, bytes: out.bytes, hash: await hashOf(out.full), ...urls(out.full, out.thumb) });
       } catch (e) {
         console.warn('zip photo', f.name, e);
       }

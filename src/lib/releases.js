@@ -1,6 +1,22 @@
 // Notas da versão (aparecem uma vez depois de cada atualização e em Definições → Novidades).
 export const RELEASES = [
   {
+    version: '0.5.0',
+    date: '2026-10-18',
+    pt: [
+      'Revisão no computador com índice de pastas ao lado e menu de contexto (abrir, rodar, inverter, lixeira, copiar caminho).',
+      'Aviso de fotos repetidas (marcadas com 2×).',
+      'Exportar contagens por pasta em CSV, para o relatório.',
+      'Instalação no computador como janela normal; definições centradas no ecrã largo.'
+    ],
+    en: [
+      'Desktop review with a folder index and context menu (open, rotate, flip, trash, copy path).',
+      'Repeated photo warning (marked 2×).',
+      'Export per-folder counts as CSV for the report.',
+      'Installs on desktop as a normal window; centred settings on wide screens.'
+    ]
+  },
+  {
     version: '0.4.0',
     date: '2026-10-18',
     pt: [

@@ -151,3 +151,26 @@ export function compareVersions(a, b) {
   }
   return 0;
 }
+
+// ---------- Resumo de contagens (CSV para o relatório) ----------
+
+/** CSV com ";" (o Excel em português abre direto) e BOM para os acentos. */
+export function countsCsv(rows, headers) {
+  const esc = (v) => {
+    const s = String(v ?? '');
+    return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return '﻿' + [headers, ...rows].map((r) => r.map(esc).join(';')).join('\r\n') + '\r\n';
+}
+
+// ---------- Duplicados (mesmo JPEG) ----------
+
+/** Ids das fotos cujo conteúdo (hash) aparece mais de uma vez, fora da lixeira. */
+export function duplicateIds(photos, trashId) {
+  const seen = new Map();
+  for (const p of photos) {
+    if (!p.hash || p.slot === trashId) continue;
+    seen.set(p.hash, [...(seen.get(p.hash) ?? []), p.id]);
+  }
+  return new Set([...seen.values()].filter((ids) => ids.length > 1).flat());
+}

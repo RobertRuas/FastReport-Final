@@ -1,6 +1,7 @@
 <script>
   import Sortable from 'sortablejs';
-  import { app, mapById, orderedSlots, groupsOf, photosIn, slotLabel, movePhoto, confirmAlert, toast, undo, emptyTrash } from '../lib/state.svelte.js';
+  import { app, mapById, orderedSlots, groupsOf, photosIn, slotLabel, movePhoto, confirmAlert, toast, undo, emptyTrash, editPhoto, isFolder, dupes } from '../lib/state.svelte.js';
+  import ContextMenu from '../components/ContextMenu.svelte';
   import { t } from '../lib/i18n.svelte.js';
   import { haptic } from '../lib/haptic.js';
   import PinchGrid from '../components/PinchGrid.svelte';
@@ -90,6 +91,33 @@
     return { text: n ? String(n) : '—', tone: 'none' };
   }
 
+  // Computador: índice de pastas ao lado e menu de contexto nas fotos.
+  let scroller = $state();
+  const dup = $derived(dupes(project));
+  function jump(slot) {
+    scroller?.querySelector(`[data-section="${slot.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  let menu = $state(null);
+  function context(e, slot, ph, i) {
+    e.preventDefault();
+    const trash = map.slots.find((s) => s.isTrash);
+    const items = [
+      { icon: 'image', label: t('delivery.open'), run: () => view(slot.id, i) },
+      { icon: 'rotate', label: t('triage.rotate'), key: 'R', run: () => editPhoto(project, ph, 'rotate') },
+      { icon: 'flip', label: t('triage.flip'), key: 'F', run: () => editPhoto(project, ph, 'flip') },
+      { sep: true },
+      slot.isTrash
+        ? { icon: 'undo', label: t('review.restore'), run: () => { movePhoto(project, ph.id, inboxSlot.id); toast(`→ ${slotLabel(inboxSlot)}`, 'accent'); } }
+        : { icon: 'trash', label: t('slot.trash'), danger: true, run: () => { movePhoto(project, ph.id, trash.id); toast(`→ ${slotLabel(trash)}`, 'accent'); } }
+    ];
+    if (isFolder(project)) items.splice(3, 0, { icon: 'copy', label: t('review.copyPath'), run: () => copyPath(ph) });
+    menu = { x: e.clientX, y: e.clientY, items };
+  }
+  async function copyPath(ph) {
+    const path = `${project.handle?.name ?? project.name}/${ph.disk}`;
+    try { await navigator.clipboard.writeText(path); toast(t('review.pathCopied')); } catch { toast(path); }
+  }
+
   function clearTrash(slot) {
     const n = photosIn(project, slot.id).length;
     if (!n) return;
@@ -100,7 +128,16 @@
   }
 </script>
 
-<div class="wrap" class:dragging>
+<div class="wrap" class:dragging class:desk={app.wide}>
+  {#if app.wide}
+    <nav class="index">
+      {#each slots as slot (slot.id)}
+        {@const n = photosIn(project, slot.id).length}
+        {@const c = countInfo(slot, n)}
+        <button class="ix" class:empty={!n} onclick={() => jump(slot)}><span class="il">{slotLabel(slot)}</span><span class="cnt {c.tone}">{c.text}</span></button>
+      {/each}
+    </nav>
+  {/if}
   {#if groups.length}
     <div class="seg-wrap">
       <div class="seg">
@@ -125,12 +162,12 @@
     </div>
   {/if}
 
-  <div class="scroll">
+  <div class="scroll" bind:this={scroller}>
     <PinchGrid>
       {#each slots as slot (slot.id)}
         {@const photos = photosIn(project, slot.id)}
         {@const c = countInfo(slot, photos.length)}
-        <section class:trash={slot.isTrash}>
+        <section class:trash={slot.isTrash} data-section={slot.id}>
           <div class="sh">
             <span class="sl">{slotLabel(slot)}</span>
             <span class="cnt {c.tone}">{c.text}</span>
@@ -140,8 +177,9 @@
           </div>
           <div class="grid list" class:empty={!photos.length} data-slot={slot.id} use:sortable={slot.id}>
             {#each photos as ph, i (ph.id)}
-              <div class="thumb" data-id={ph.id} onclick={() => view(slot.id, i)} role="presentation">
+              <div class="thumb" data-id={ph.id} onclick={() => view(slot.id, i)} oncontextmenu={(e) => context(e, slot, ph, i)} role="presentation" title={isFolder(project) ? ph.name : null}>
                 <img src={ph.thumb} alt="" loading="lazy" decoding="async" />
+                {#if dup.has(ph.id)}<span class="dup">2×</span>{/if}
               </div>
             {/each}
           </div>
@@ -155,6 +193,8 @@
     </div>
   </div>
 </div>
+
+{#if menu}<ContextMenu x={menu.x} y={menu.y} items={menu.items} onclose={() => (menu = null)} />{/if}
 
 <style>
   .wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -189,6 +229,15 @@
   }
   .dragging .list.empty { border-color: var(--accent); background: var(--accent-soft); }
   .trash .thumb img { opacity: 0.55; }
+  .dup { position: absolute; left: 4px; bottom: 4px; padding: 1px 5px; border-radius: 5px; background: var(--orange); color: #fff; font-size: 10px; font-weight: 700; }
+  .desk { display: grid; grid-template-columns: 200px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); }
+  .desk > :not(.index) { grid-column: 2; }
+  .desk .scroll { min-height: 0; }
+  .index { grid-row: 1 / -1; overflow-y: auto; border-right: 0.5px solid var(--sep); padding: 8px 6px 20px; }
+  .ix { display: flex; align-items: baseline; gap: 6px; width: 100%; padding: 6px 10px; border-radius: 7px; font-size: 14px; text-align: left; }
+  .ix:hover { background: var(--fill); }
+  .ix .il { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ix.empty .il { color: var(--label2); font-weight: 500; }
   .foot { display: grid; justify-items: center; padding: 22px 16px 28px; }
   .foot .btn { height: 40px; font-size: 15px; }
 </style>
